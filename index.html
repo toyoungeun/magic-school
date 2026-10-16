@@ -1,0 +1,933 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>주원이의 마술 학교</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="theme-color" content="#16112a">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Jua&family=Gowun+Dodum&display=swap" rel="stylesheet">
+<style>
+/* Layout: one centered column like a theater program — a curtain-red marquee on top, lessons as lit "stage" panels on a midnight velvet ground */
+:root{
+  --night:#16112a; --velvet:#211941; --panel:#2b2250; --line:#43386f;
+  --ink:#f8f2e4; --mute:#b9aed8; --gold:#f5c45c; --gold-deep:#c99332;
+  --rose:#e65a72; --curtain:#8f1d36; --mint:#62d6a8;
+  --paper:#fff8ea; --paper-ink:#2b2142;
+  --display:'Jua','Apple SD Gothic Neo','Malgun Gothic',sans-serif;
+  --body:'Gowun Dodum','Apple SD Gothic Neo','Malgun Gothic',sans-serif;
+  color-scheme:dark;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{
+  margin:0; min-height:100vh; color:var(--ink); font-family:var(--body); font-size:17px; line-height:1.6;
+  background:var(--night);
+  background-image:radial-gradient(1px 1px at 12% 18%,var(--gold) 50%,transparent 51%),
+    radial-gradient(1px 1px at 78% 9%,var(--ink) 50%,transparent 51%),
+    radial-gradient(1.5px 1.5px at 55% 30%,var(--gold) 50%,transparent 51%),
+    radial-gradient(1px 1px at 30% 70%,var(--ink) 50%,transparent 51%),
+    radial-gradient(1px 1px at 88% 60%,var(--gold) 50%,transparent 51%),
+    radial-gradient(ellipse at 50% -10%,var(--velvet),var(--night) 70%);
+  background-attachment:fixed;
+  padding-left:max(16px,env(safe-area-inset-left,0px)); padding-right:max(16px,env(safe-area-inset-right,0px));
+  padding-block:0 48px;
+}
+.wrap{max-width:760px;margin:0 auto}
+h1,h2,h3,.disp{font-family:var(--display);font-weight:400;text-wrap:balance;margin:0}
+button{font:inherit;color:inherit;cursor:pointer;border:none;background:none}
+button:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.screen{display:none}.screen.on{display:block}
+
+/* ---------- marquee ---------- */
+.marquee{position:relative;margin:0 calc(-1 * max(16px,env(safe-area-inset-left,0px))) 22px;padding:26px 16px 30px;text-align:center;
+  background:repeating-linear-gradient(90deg,var(--curtain) 0 22px,#7a1830 22px 34px);border-bottom:4px solid var(--gold-deep);
+  box-shadow:0 10px 30px rgba(0,0,0,.45)}
+.marquee h1{font-size:clamp(30px,8vw,46px);color:var(--gold);text-shadow:0 3px 0 #5b0f22,0 0 18px rgba(245,196,92,.35);letter-spacing:1px}
+.marquee .hat{font-size:44px;display:block;line-height:1}
+.marquee p{margin:6px 0 0;color:var(--paper);font-size:15px}
+.rank{display:inline-flex;gap:8px;align-items:center;margin-top:12px;background:rgba(22,17,42,.55);border:1px solid var(--gold-deep);
+  border-radius:999px;padding:6px 16px;font-family:var(--display);color:var(--gold)}
+.rank small{font-family:var(--body);color:var(--paper);font-size:13px}
+
+/* ---------- home ---------- */
+.level{margin-bottom:26px}
+.level-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:10px}
+.level-head h2{font-size:24px;color:var(--gold)}
+.level-head span{color:var(--mute);font-size:14px}
+.level-head .tag{font-family:var(--display);font-size:13px;letter-spacing:.06em;color:var(--night);background:var(--gold);border-radius:6px;padding:1px 8px}
+.level.locked .level-head h2{color:var(--mute)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px}
+.lcard{text-align:left;background:var(--panel);border:2px solid var(--line);border-radius:16px;padding:14px 16px;display:flex;gap:12px;align-items:flex-start;transition:transform .15s,border-color .15s;min-width:0}
+.lcard:hover:not([disabled]){transform:translateY(-2px);border-color:var(--gold)}
+.lcard .ic{font-size:30px;line-height:1.1}
+.lcard b{font-family:var(--display);font-weight:400;font-size:19px;display:block}
+.lcard small{color:var(--mute);font-size:13.5px;display:block;line-height:1.4}
+.lcard .st{margin-top:4px;color:var(--gold);font-size:14px;letter-spacing:2px}
+.lcard.done{border-color:var(--gold-deep)}
+.lcard[disabled]{opacity:.42;cursor:not-allowed}
+.stage-btn{width:100%;margin:6px 0 26px;padding:22px 18px;border-radius:20px;text-align:center;
+  background:linear-gradient(180deg,var(--curtain),#5e1124);border:3px solid var(--gold);box-shadow:0 0 0 6px rgba(245,196,92,.12),0 12px 30px rgba(0,0,0,.4)}
+.stage-btn b{display:block;font-family:var(--display);font-weight:400;font-size:28px;color:var(--gold)}
+.stage-btn small{color:var(--paper);font-size:14px}
+.foot{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:10px}
+.foot button{font-size:13px;color:var(--mute);border:1px solid var(--line);border-radius:999px;padding:6px 14px}
+
+/* ---------- lesson ---------- */
+.bar{display:flex;align-items:center;gap:10px;padding:16px 0 10px}
+.back{font-size:15px;border:1px solid var(--line);border-radius:999px;padding:6px 14px;color:var(--mute)}
+.bar h2{font-size:22px;flex:1;min-width:0}
+.steps{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 14px;padding:0;list-style:none}
+.steps li{font-size:13px;padding:3px 12px;border-radius:999px;border:1px solid var(--line);color:var(--mute)}
+.steps li.now{background:var(--gold);color:var(--night);border-color:var(--gold);font-weight:bold}
+.steps li.done{color:var(--gold);border-color:var(--gold-deep);cursor:pointer}
+.stage{background:linear-gradient(180deg,var(--panel),var(--velvet));border:2px solid var(--line);border-radius:22px;padding:20px 18px 22px;
+  box-shadow:inset 0 30px 60px -40px rgba(245,196,92,.35);min-height:300px}
+.pane{display:flex;flex-direction:column;gap:14px;animation:rise .35s ease both}
+@keyframes rise{from{opacity:.4;transform:translateY(6px)}to{opacity:1;transform:none}}
+.say{display:flex;gap:10px;align-items:flex-start}
+.say .who{font-size:34px;line-height:1;flex:none}
+.say p{margin:0;background:var(--paper);color:var(--paper-ink);border-radius:4px 18px 18px 18px;padding:12px 16px;font-size:17.5px;min-width:0}
+.say p b{color:var(--curtain)}
+.note{color:var(--mute);font-size:15px;margin:0}
+.big{align-self:center;font-family:var(--display);font-size:21px;background:var(--gold);color:var(--night);border-radius:999px;padding:12px 30px;box-shadow:0 4px 0 var(--gold-deep)}
+.big:active{transform:translateY(2px);box-shadow:0 2px 0 var(--gold-deep)}
+.big[disabled]{opacity:.35;cursor:not-allowed}
+.ghost{align-self:center;font-size:15px;border:1px solid var(--gold-deep);color:var(--gold);border-radius:999px;padding:8px 18px}
+.row{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+.pad{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
+.pad button{width:46px;height:46px;border-radius:12px;background:var(--velvet);border:2px solid var(--line);font-family:var(--display);font-size:20px}
+.pad button.on{border-color:var(--gold);color:var(--gold)}
+.chain{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:6px;font-family:var(--display);font-size:22px}
+.chain b{font-weight:400;background:var(--velvet);border:2px solid var(--line);border-radius:10px;padding:2px 12px;min-width:44px;text-align:center}
+.chain i{font-style:normal;color:var(--mute);font-size:17px}
+.gold{color:var(--gold)!important;border-color:var(--gold)!important}
+.bags{display:grid;gap:6px;background:var(--velvet);border-radius:14px;padding:12px 14px}
+.bags div{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.bagrow{font-size:24px;min-width:120px}
+.bagrow em{font-style:normal;color:var(--gold);font-size:18px;letter-spacing:2px}
+.bagrow s{opacity:.35}
+.bags small{color:var(--mute);font-size:14px}
+.box{background:var(--velvet);border:1px dashed var(--line);border-radius:14px;padding:12px 16px}
+.box h3{font-size:18px;color:var(--gold);margin-bottom:4px}
+.box p{margin:4px 0}
+ol.secret{margin:0;padding-left:22px;display:grid;gap:8px}
+ol.secret li::marker{color:var(--gold);font-family:var(--display)}
+
+/* playing cards */
+.pc{width:50px;height:68px;border-radius:9px;background:var(--paper);color:var(--paper-ink);display:inline-flex;align-items:center;justify-content:center;font-size:28px;
+  border:2px solid #e8dcc0;box-shadow:0 2px 4px rgba(0,0,0,.35);position:relative;flex:none;transition:transform .2s}
+.pc.down{background:repeating-linear-gradient(45deg,var(--curtain) 0 6px,#a5274a 6px 12px);border-color:var(--gold-deep)}
+.pc.down span{visibility:hidden}
+.pc.key{outline:3px solid var(--gold);outline-offset:1px}
+.pc.key::after{content:'🔑';position:absolute;top:-12px;right:-10px;font-size:16px}
+.pc.hl{outline:3px solid var(--mint);outline-offset:1px;transform:translateY(-6px)}
+.pc.pick{transform:translateY(-8px) scale(1.06)}
+.pc.small{width:40px;height:54px;font-size:22px;border-radius:7px}
+.pc.huge{width:120px;height:164px;font-size:70px;border-radius:16px}
+.pc .num{position:absolute;bottom:-20px;left:0;right:0;text-align:center;font-size:12px;color:var(--mute);font-family:var(--body)}
+.fan{display:flex;flex-wrap:wrap;gap:6px;justify-content:center}
+.cols{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.col{display:flex;flex-direction:column;align-items:center;gap:4px;background:var(--velvet);border-radius:14px;padding:10px 4px;min-width:0}
+.col .pc{animation:deal .3s ease both}
+@keyframes deal{from{opacity:0;transform:translateY(-14px)}to{opacity:1;transform:none}}
+.col button.pickcol{margin-top:6px;font-family:var(--display);font-size:16px;background:var(--gold);color:var(--night);border-radius:999px;padding:4px 14px}
+
+/* number cards */
+.ncards{display:flex;flex-wrap:wrap;gap:10px;justify-content:center}
+.ncard{background:var(--paper);color:var(--paper-ink);border-radius:14px;padding:10px;border:3px solid #e8dcc0;width:min(100%,250px)}
+.ncard h4{margin:0 0 6px;font-family:var(--display);font-weight:400;font-size:15px;color:var(--curtain)}
+.ngrid{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;font-family:var(--display);font-size:20px;text-align:center;font-variant-numeric:tabular-nums}
+.ngrid.c8{grid-template-columns:repeat(4,1fr);font-size:17px}
+.ngrid span{background:#f3e8cf;border-radius:6px}
+.ngrid span.first{background:var(--gold);box-shadow:0 0 0 2px var(--curtain)}
+.ncard.lit{border-color:var(--gold);box-shadow:0 0 0 3px var(--gold)}
+.ncard.dim{opacity:.35}
+.yesno{display:flex;gap:12px;justify-content:center}
+.yesno button{font-family:var(--display);font-size:20px;border-radius:14px;padding:10px 22px}
+.yes{background:var(--mint);color:var(--night)}
+.no{background:var(--velvet);border:2px solid var(--line)!important}
+
+/* dice */
+.die{width:64px;height:64px;background:var(--paper);border-radius:12px;display:grid;grid-template-columns:repeat(3,1fr);padding:8px;gap:2px;box-shadow:inset 0 -4px 0 #e2d4b5,0 3px 6px rgba(0,0,0,.4)}
+.die i{border-radius:50%;margin:2px}.die i.on{background:var(--paper-ink)}
+.die.q{display:flex;align-items:center;justify-content:center;font-family:var(--display);font-size:30px;color:var(--curtain);background:#e9dcc0}
+.tower{display:flex;flex-direction:column;align-items:center;gap:3px}
+.tower .lab{font-size:13px;color:var(--mute)}
+.pairs{display:grid;gap:6px}
+.pairs div{display:flex;gap:10px;align-items:center;justify-content:center;flex-wrap:wrap}
+.pairs .mini{width:38px;height:38px;padding:4px}
+
+/* table / crystal */
+.tbl-wrap{overflow-x:auto}
+.tbl{display:grid;grid-template-columns:repeat(10,minmax(30px,1fr));gap:3px;min-width:320px}
+.tbl div{background:var(--paper);color:var(--paper-ink);border-radius:6px;text-align:center;font-size:12px;line-height:1.1;padding:3px 0;font-variant-numeric:tabular-nums}
+.tbl div span{display:block;font-size:17px}
+.tbl div.nine{background:var(--gold);box-shadow:0 0 0 2px var(--curtain)}
+.ball{width:170px;height:170px;border-radius:50%;align-self:center;display:flex;align-items:center;justify-content:center;font-size:74px;
+  background:radial-gradient(circle at 35% 30%,#fff 0 6%,#cbb8ff 14%,#6b4fc7 48%,#2a1a63 80%);box-shadow:0 0 40px rgba(165,140,255,.55),inset 0 -12px 30px rgba(0,0,0,.4);transition:box-shadow .3s}
+.ball.glow{box-shadow:0 0 70px rgba(245,196,92,.9),inset 0 -12px 30px rgba(0,0,0,.4)}
+.ball span{opacity:0;transform:scale(.4);transition:all .6s}
+.ball.show span{opacity:1;transform:none}
+
+/* digits 1089 */
+.digits{display:flex;gap:10px;justify-content:center}
+.dg{display:flex;flex-direction:column;align-items:center;gap:4px}
+.dg button{width:52px;height:34px;border-radius:10px;background:var(--velvet);border:2px solid var(--line);font-size:16px}
+.dg b{font-family:var(--display);font-weight:400;font-size:40px;background:var(--paper);color:var(--paper-ink);width:52px;text-align:center;border-radius:10px}
+.calc{font-family:var(--display);font-size:22px;text-align:center;display:grid;gap:4px;font-variant-numeric:tabular-nums}
+.calc .res{color:var(--gold);font-size:28px}
+
+/* envelope */
+.env{align-self:center;width:200px;height:130px;border-radius:12px;background:var(--paper);color:var(--paper-ink);display:flex;align-items:center;justify-content:center;
+  font-family:var(--display);font-size:20px;position:relative;box-shadow:0 6px 18px rgba(0,0,0,.4);overflow:hidden;text-align:center}
+.env::before{content:'';position:absolute;inset:0 0 50% 0;background:linear-gradient(to bottom right,transparent 49.5%,#e6d6b2 50%) left/50% 100% no-repeat,linear-gradient(to bottom left,transparent 49.5%,#e6d6b2 50%) right/50% 100% no-repeat}
+.env.open::before{display:none}
+.env.open{font-size:46px;color:var(--curtain);border:3px solid var(--gold)}
+.env small{position:absolute;bottom:8px;font-size:13px;color:var(--mute)}
+
+/* calendar */
+.calhead{text-align:center;font-family:var(--display);font-size:20px;color:var(--gold)}
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;font-variant-numeric:tabular-nums}
+.cal div,.cal button{aspect-ratio:1/1;max-width:100%;border-radius:8px;display:flex;align-items:center;justify-content:center;font-family:var(--display);font-size:18px}
+.cal .dow{aspect-ratio:auto;font-size:13px;color:var(--mute);font-family:var(--body)}
+.cal button{background:var(--paper);color:var(--paper-ink)}
+.cal button.in{background:var(--gold);box-shadow:0 0 0 2px var(--curtain)}
+.cal button.mid{background:var(--rose);color:var(--paper)}
+
+/* tree */
+.tree{background:var(--velvet);border-radius:14px;padding:12px 14px;font-size:15.5px}
+.tree ul{list-style:none;margin:4px 0 4px 10px;padding-left:12px;border-left:2px solid var(--line)}
+.tree>ul{margin-left:0;border:none;padding-left:0}
+.tree li{margin:6px 0}
+.tree .q{color:var(--mute)}
+.tree .sayit{color:var(--paper)}
+.tree .path>.sayit,.tree .path>.q{color:var(--gold);font-weight:bold}
+
+/* quiz */
+.qnum{font-size:13px;color:var(--mute)}
+.qq{font-family:var(--display);font-size:21px}
+.opts{display:grid;gap:10px}
+.opts button{text-align:left;background:var(--velvet);border:2px solid var(--line);border-radius:14px;padding:12px 16px;font-size:17px}
+.opts button.right{border-color:var(--mint);background:rgba(98,214,168,.15)}
+.opts button.wrong{border-color:var(--rose);opacity:.6;animation:shake .35s}
+@keyframes shake{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.why{background:rgba(98,214,168,.12);border:1px solid var(--mint);border-radius:12px;padding:10px 14px;margin:0}
+.hint{color:var(--rose);margin:0}
+
+/* finish */
+.trophy{text-align:center}
+.trophy .stars{font-size:46px;letter-spacing:6px}
+.trophy h3{font-size:28px;color:var(--gold)}
+
+/* show / stage */
+.seg{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+.seg button{flex:1 1 120px;border:2px solid var(--line);border-radius:14px;padding:8px 10px;font-family:var(--display);font-size:16px;color:var(--mute)}
+.seg button.on{border-color:var(--gold);color:var(--night);background:var(--gold)}
+.script{background:var(--paper);color:var(--paper-ink);border-radius:18px;padding:18px;display:grid;gap:12px;min-height:200px}
+.script .n{font-size:13px;color:#8a7a9e}
+.script .line{font-family:var(--display);font-size:24px;line-height:1.45}
+.script .act{background:#efe3c8;border-radius:12px;padding:10px 12px;font-size:16px}
+.cue,.hush{border-radius:14px;padding:10px 14px}
+.cue{background:var(--paper);color:var(--paper-ink)}
+.cue b{color:var(--curtain);font-size:13px}
+.hush{background:rgba(230,90,114,.12);border:1px dashed var(--rose)}
+.hush b{color:var(--rose);font-size:13px}
+.cue p,.hush p{margin:2px 0 0}
+.peek{font-size:14px;color:var(--rose);border:1px dashed var(--rose);border-radius:999px;padding:6px 14px;align-self:center}
+.prep{margin:0;padding-left:0;list-style:none;display:grid;gap:8px}
+.prep label{display:flex;gap:10px;align-items:center;background:var(--velvet);border-radius:12px;padding:10px 14px;cursor:pointer}
+.prep input{width:22px;height:22px;accent-color:var(--gold)}
+.count{font-family:var(--display);color:var(--gold)}
+input[type=text]{font:inherit;background:var(--paper);color:var(--paper-ink);border:2px solid var(--gold-deep);border-radius:12px;padding:8px 12px;width:100%;max-width:280px}
+
+.toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--paper);color:var(--paper-ink);
+  padding:10px 18px;border-radius:999px;font-size:15px;box-shadow:0 6px 20px rgba(0,0,0,.4);z-index:50;max-width:calc(100% - 32px);text-align:center}
+.spark{position:fixed;pointer-events:none;z-index:60;font-size:20px;animation:spark .9s ease-out forwards}
+@keyframes spark{to{transform:translate(var(--dx),var(--dy)) scale(.3);opacity:0}}
+.flash{position:fixed;inset:0;background:var(--paper);z-index:40;pointer-events:none;animation:flash .5s ease-out forwards}
+@keyframes flash{from{opacity:.95}to{opacity:0}}
+.lookhere{position:fixed;z-index:45;font-size:60px;pointer-events:none;animation:pulse .5s ease-in-out infinite alternate}
+@keyframes pulse{to{transform:scale(1.4) rotate(15deg)}}
+.g3{display:grid;grid-template-columns:repeat(3,64px);gap:10px;justify-content:center}
+.g3 button{width:64px;height:64px;border-radius:14px;background:var(--paper);font-size:36px}
+.g3 button.hl{box-shadow:0 0 0 4px var(--mint)}
+.g3 button.bad{box-shadow:0 0 0 4px var(--rose)}
+.items{display:flex;gap:14px;justify-content:center;flex-wrap:wrap}
+.items button{width:84px;height:84px;border-radius:18px;background:var(--paper);font-size:48px;border:3px solid transparent;transition:.2s}
+.items button.sel{border-color:var(--gold);transform:translateY(-6px)}
+.items button.gone{opacity:.15;transform:scale(.8)}
+.pledge{display:grid;gap:8px}
+.pledge button{text-align:left;background:var(--velvet);border:2px solid var(--line);border-radius:14px;padding:10px 14px}
+.pledge button.ok{border-color:var(--gold)}
+.pledge small{display:block;color:var(--mute);font-size:14px}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+@media (max-width:420px){.pc{width:42px;height:58px;font-size:24px}.pc.small{width:34px;height:46px;font-size:19px}.say p{font-size:16.5px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<section id="home" class="screen on">
+  <header class="marquee">
+    <span class="hat" aria-hidden="true">🎩</span>
+    <h1>주원이의 마술 학교</h1>
+    <p>원리를 배우고, 응용하고, 무대에서 직접 보여 주는 마술사 수업</p>
+    <div class="rank" id="rank"></div>
+  </header>
+  <div id="levels"></div>
+  <button class="stage-btn" id="toStage"><b>🎪 실전 무대</b><small>배운 마술로 가족과 친구를 깜짝 놀라게 해요</small></button>
+  <div class="foot">
+    <button id="snd"></button>
+    <button id="unlock">🔓 모든 수업 열기 (부모님용)</button>
+    <button id="reset">처음부터 다시</button>
+  </div>
+</section>
+
+<section id="lesson" class="screen">
+  <div class="bar"><button class="back" data-home>← 학교</button><h2 id="lsTitle"></h2></div>
+  <ul class="steps" id="lsSteps"></ul>
+  <div class="stage" id="lsBody"></div>
+</section>
+
+<section id="stage" class="screen">
+  <div class="bar"><button class="back" data-home>← 학교</button><h2>🎪 실전 무대</h2></div>
+  <p class="note" style="margin-bottom:14px">수업을 끝낸 마술만 무대에 올릴 수 있어요. 대본으로 연습하고, 화면을 마술 도구로 써서 직접 공연해 보세요.</p>
+  <div class="grid" id="stageList"></div>
+</section>
+
+<section id="show" class="screen">
+  <div class="bar"><button class="back" id="backStage">← 무대</button><h2 id="shTitle"></h2></div>
+  <div class="seg" id="shSeg">
+    <button data-tab="script">📜 준비 · 대본</button>
+    <button data-tab="tool">🪄 화면으로 공연</button>
+    <button data-tab="log">🏆 공연 기록</button>
+  </div>
+  <div class="stage" id="shBody"></div>
+</section>
+
+</div>
+<script>
+'use strict';
+/* ================= 저장 ================= */
+const KEY='magic-school-v1';
+let S={done:{},stars:{},shows:{},unlockAll:false,sound:true};
+try{const raw=localStorage.getItem(KEY); if(raw) S=Object.assign(S,JSON.parse(raw));}catch(e){}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
+
+/* ================= 도우미 ================= */
+const $=(s,r=document)=>r.querySelector(s);
+const $$=(s,r=document)=>[...r.querySelectorAll(s)];
+const rnd=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+const POOL=['🍎','🍌','🍇','🍓','🍉','🍒','🍑','🍍','🥝','🥕','🌽','🐶','🐱','🐰','🦊','🐻','🐼','🐸','🐵','🦁','🐯','🐷','🐮','🐔','🐧','🦄','🐳','🐙','🦋','🐞','🌟','🌈','🚀','⚽','🎈','🎁'];
+const pickN=n=>shuffle(POOL).slice(0,n);
+function on(root,sel,fn){root.addEventListener('click',e=>{const t=e.target.closest(sel);if(t&&root.contains(t)&&!t.disabled)fn(t,e);});}
+function paint(el,h,map={}){const d=document.createElement('div');d.className='pane';d.innerHTML=h;el.replaceChildren(d);for(const k in map)on(d,k,map[k]);return d;}
+const say=(t,who='🧙')=>`<div class="say"><span class="who" aria-hidden="true">${who}</span><p>${t}</p></div>`;
+const cue=t=>`<div class="cue"><b>🎩 이렇게 말해요</b><p>${t}</p></div>`;
+const hush=t=>`<div class="hush"><b>🤫 몰래 할 일</b><p>${t}</p></div>`;
+const big=(t,attr='data-go')=>`<button class="big" ${attr}>${t}</button>`;
+const card=(e,cls='',attr='')=>`<button class="pc ${cls}" ${attr}><span>${e}</span></button>`;
+function toast(t){const d=document.createElement('div');d.className='toast';d.textContent=t;document.body.appendChild(d);setTimeout(()=>d.remove(),2200);}
+const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+function burst(target){
+  chime();
+  if(reduce||!target)return;
+  const r=target.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2;
+  for(let i=0;i<16;i++){const s=document.createElement('span');s.className='spark';s.textContent=['✨','⭐','💫'][i%3];
+    const a=Math.PI*2*i/16,dist=60+Math.random()*60;s.style.left=cx+'px';s.style.top=cy+'px';
+    s.style.setProperty('--dx',Math.cos(a)*dist+'px');s.style.setProperty('--dy',Math.sin(a)*dist+'px');
+    document.body.appendChild(s);setTimeout(()=>s.remove(),950);}
+}
+let AC=null;
+function chime(){
+  if(!S.sound)return;
+  try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();const t=AC.currentTime;
+    [784,988,1319,1568].forEach((f,i)=>{const o=AC.createOscillator(),g=AC.createGain();o.type='sine';o.frequency.value=f;
+      g.gain.setValueAtTime(0,t+i*.07);g.gain.linearRampToValueAtTime(.12,t+i*.07+.02);g.gain.exponentialRampToValueAtTime(.001,t+i*.07+.5);
+      o.connect(g).connect(AC.destination);o.start(t+i*.07);o.stop(t+i*.07+.55);});}catch(e){}
+}
+const padHTML=(a,b)=>`<div class="pad">${Array.from({length:b-a+1},(_,i)=>`<button data-n="${a+i}">${a+i}</button>`).join('')}</div>`;
+
+/* ================= 공통 마술 엔진 ================= */
+
+/* --- 계산 체인 --- */
+function chainHTML(n,add){const a=n*2,b=a+add,c=b/2,d=c-n;
+  return `<div class="chain"><b>${n}</b><i>×2</i><b>${a}</b><i>+${add}</i><b>${b}</b><i>÷2</i><b>${c}</b><i>−${n}</i><b class="gold">${d}</b></div>`;}
+function bagHTML(add){const dots=k=>'●'.repeat(k);
+  return `<div class="bags">
+  <div><span class="bagrow">👜</span><small>생각한 숫자를 주머니 👜 하나라고 해요. 안에 몇 개 있는지는 몰라요.</small></div>
+  <div><span class="bagrow">👜👜</span><small>×2 → 주머니가 2개가 돼요</small></div>
+  <div><span class="bagrow">👜👜 <em>${dots(add)}</em></span><small>+${add} → 구슬 ${add}개를 더해요</small></div>
+  <div><span class="bagrow">👜 <em>${dots(add/2)}</em></span><small>÷2 → 반으로 나누면 주머니 1개, 구슬 ${add/2}개</small></div>
+  <div><span class="bagrow"><s>👜</s> <em>${dots(add/2)}</em></span><small>−처음 숫자 → 주머니가 사라지고 <b>구슬 ${add/2}개</b>만 남아요!</small></div></div>`;}
+
+/* --- 이진 숫자 카드 --- */
+const binNums=(bit,max)=>{const a=[];for(let n=1;n<=max;n++)if(n&bit)a.push(n);return a;};
+function ncardHTML(bit,max,{hl=false,cls='',label=''}={}){
+  return `<div class="ncard ${cls}"><h4>${label}</h4><div class="ngrid ${max>15?'c8':''}">${binNums(bit,max).map((n,i)=>`<span class="${hl&&i===0?'first':''}">${n}</span>`).join('')}</div></div>`;}
+function binGame(el,{bits,mode,onEnd}){
+  const max=bits.reduce((s,b)=>s+b,0); const order=shuffle(bits); let i=0; const yes=[];
+  const intro=()=>paint(el,(mode==='show'?cue(`1부터 ${max}까지 숫자 하나를 마음속으로 생각해. 이제 카드를 보여 줄 테니 네 숫자가 있으면 "있어", 없으면 "없어"라고 말해 줘!`)
+    :say(`1부터 <b>${max}</b>까지 숫자 하나를 마음속으로 생각하세요. 화면에 누르지 말고 머릿속에만!`))+big('생각했어요 ✨'),{'[data-go]':ask});
+  const ask=()=>{const b=order[i];
+    paint(el,`<p class="qnum">카드 ${i+1} / ${order.length}</p>${ncardHTML(b,max,{label:`마법 카드 ${i+1}`})}
+      <p class="note" style="text-align:center">네 숫자가 이 카드에 있나요?</p>
+      <div class="yesno"><button class="yes" data-y="1">있어요</button><button class="no" data-y="0">없어요</button></div>
+      ${mode==='show'?hush('"있어요"라고 하면 카드 맨 앞(왼쪽 위) 숫자를 머릿속으로 더해요.'):''}`,
+      {'[data-y]':t=>{if(t.dataset.y==='1')yes.push(b);i++;i<order.length?ask():end();}});};
+  const end=()=>{const sum=yes.reduce((s,b)=>s+b,0);
+    if(mode==='show'){
+      const d=paint(el,cue(`음… 네 마음이 보여… 네가 생각한 숫자는 바로…!`)+`<p class="note" style="text-align:center">마술사가 숫자를 먼저 말한 다음 아래 버튼을 눌러요.</p>`
+        +`<button class="peek" data-peek>🤫 마술사만 정답 살짝 보기</button><p id="pk" class="note" style="text-align:center" hidden></p>`+big('🎉 정답 공개'),
+        {'[data-peek]':()=>{const p=$('#pk',d);p.hidden=!p.hidden;p.textContent=`정답: ${sum} (${yes.sort((a,b)=>a-b).join(' + ')||'없음'})`;},
+         '[data-go]':t=>{paint(el,`<div class="trophy"><div class="stars disp">${sum}</div><h3>정답은 ${sum}!</h3></div>`+big('공연 끝 🏆'),{'[data-go]':()=>onEnd&&onEnd()});burst($('.trophy',el));}});
+      return;}
+    if(sum===0){paint(el,say('어? 아무 카드에도 없다고요? 1부터 '+max+'까지 숫자를 골랐는지 확인하고 다시 해 봐요!')+big('다시 하기'),{'[data-go]':()=>{i=0;yes.length=0;intro();}});return;}
+    const d=paint(el,say('수리수리 마수리… 네가 생각한 숫자는…')+`<div class="trophy"><div class="stars disp" style="font-size:72px">${sum}</div></div>`
+      +say('맞았죠? 어떻게 알았는지 비밀을 배워 볼까요?')+big('비밀 배우기 ▶'),{'[data-go]':()=>onEnd&&onEnd()});
+    burst($('.trophy',d));};
+  intro();
+}
+
+/* --- 주사위 탑 --- */
+const PIPS={1:[4],2:[0,8],3:[0,4,8],4:[0,2,6,8],5:[0,2,4,6,8],6:[0,2,3,5,6,8]};
+const die=(n,cls='')=>`<div class="die ${cls}">${Array.from({length:9},(_,i)=>`<i class="${PIPS[n].includes(i)?'on':''}"></i>`).join('')}</div>`;
+function diceGame(el,{mode,onEnd}){
+  const t=[rnd(1,6),rnd(1,6),rnd(1,6)], ans=21-t[0];
+  const tower=`<div class="tower"><span class="lab">맨 위</span>${die(t[0])}<div class="die q">?</div><div class="die q">?</div><span class="lab">맨 아래</span></div>`;
+  const reveal=()=>{const rows=[
+      ['맨 위 주사위 아랫면',7-t[0]],['가운데 주사위 윗면',t[1]],['가운데 주사위 아랫면',7-t[1]],['맨 아래 주사위 윗면',t[2]],['맨 아래 주사위 아랫면',7-t[2]]];
+    const d=paint(el,`<div class="pairs">${rows.map(([n,v])=>`<div><span class="note">${n}</span>${die(v,'mini')}<b class="disp">${v}</b></div>`).join('')}</div>
+      <div class="calc"><div>${rows.map(r=>r[1]).join(' + ')}</div><div class="res">= ${ans}</div></div>`
+      +(mode==='show'?big('공연 끝 🏆'):say(`숨은 면 5개를 더하면 정말 <b>${ans}</b>! 마술사는 어떻게 안 봐도 알았을까요?`)+big('비밀 배우기 ▶')),{'[data-go]':()=>onEnd&&onEnd()});
+    burst($('.res',d));};
+  if(mode==='show'){
+    const d=paint(el,cue('주사위 3개를 굴려서 탑처럼 쌓았어. 나는 안 보이는 면을 투시할 수 있어!')+tower
+      +hush(`맨 위 숫자를 보고 21에서 빼요. 마술사가 먼저 답을 말해요!`)
+      +`<button class="peek" data-peek>🤫 정답 살짝 보기</button><p id="pk" class="note" style="text-align:center" hidden>정답: 21 − ${t[0]} = ${ans}</p>`+big('🔍 숨은 면 확인하기'),
+      {'[data-peek]':()=>{$('#pk',d).hidden=!$('#pk',d).hidden;},'[data-go]':reveal});return;}
+  paint(el,say('주사위 3개를 굴려서 탑처럼 쌓았어요. 마술사에게는 <b>맨 위 숫자</b>만 보여요. 바닥과 주사위끼리 맞닿은 면, 모두 <b>5개의 면</b>은 숨어 있어요.')+tower+big('🔮 투시하기'),
+    {'[data-go]':()=>{const d=paint(el,say(`음… 보인다, 보여… 숨은 면 5개의 합은 바로 <b>${ans}</b>!`)+tower+big('정말인지 확인하기'),{'[data-go]':reveal});burst($('.say',d));}});
+}
+
+/* --- 21장 카드 --- */
+function game21(el,{mode,onEnd}){
+  let deck=pickN(21), round=0, chosen=null;
+  const cols=()=>[0,1,2].map(c=>deck.filter((_,i)=>i%3===c));
+  const posOf=()=>deck.indexOf(chosen)+1;
+  const choose=()=>{ // 비밀 모드: 카드를 먼저 고름
+    paint(el,say('비밀을 눈으로 보려면, 이번엔 고른 카드를 화면에 눌러서 표시해요. 그 카드가 어떻게 움직이는지 따라가 봐요!')
+      +`<div class="fan">${deck.map(e=>card(e,'small',`data-e="${e}"`)).join('')}</div>`,
+      {'[data-e]':t=>{chosen=t.dataset.e;deal();}});};
+  const deal=()=>{const c=cols();
+    const h=(mode==='show'?cue(round===0?'카드 21장 중에 한 장을 마음속으로 골라 줘. 그리고 그 카드가 어느 줄에 있는지 알려 줘!':'다시 놓았어. 이번엔 네 카드가 어느 줄에 있어?')
+        :say(round===0?(mode==='secret'?'카드를 한 장씩 왼쪽 → 가운데 → 오른쪽 순서로 놓아 7장씩 3줄을 만들었어요. 내 카드가 있는 줄을 눌러요.':'카드 하나를 마음속으로 고르세요. 그리고 그 카드가 있는 줄을 눌러요!')
+          :`좋아요! 다시 한 장씩 3줄로 놓았어요. (${round+1}번째) 이번엔 어느 줄에 있어요?`))
+      +(mode==='secret'&&round>0?`<p class="note" style="text-align:center">지금 내 카드 위치: 위에서 <b class="count">${posOf()}번째</b></p>`:'')
+      +`<div class="cols">${c.map((col,k)=>`<div class="col">${col.map((e,j)=>card(e,'small'+(mode==='secret'&&e===chosen?' hl':''),`style="animation-delay:${(j*3+k)*25}ms"`)).join('')}<button class="pickcol" data-c="${k}">이 줄!</button></div>`).join('')}</div>`;
+    paint(el,h,{'[data-c]':t=>{const k=+t.dataset.c;
+      if(mode==='secret'&&!c[k].includes(chosen)){toast('내 카드(초록 테두리)가 있는 줄을 눌러요!');return;}
+      const others=[0,1,2].filter(x=>x!==k);deck=[...c[others[0]],...c[k],...c[others[1]]];round++;
+      if(mode==='secret'){gathered(k);return;}
+      round<3?deal():finale();}});};
+  const gathered=k=>{const p=posOf();
+    paint(el,say(`고른 줄을 <b>가운데</b>에 넣고 카드를 모았어요. 내 카드는 이제 위에서 <b>${p}번째</b>! ${round===1?'8~14번째 사이로 들어왔어요.':round===2?'범위가 10~12번째로 더 좁아졌어요.':'딱 <b>11번째</b>, 21장의 한가운데예요!'}`)
+      +`<div class="fan">${deck.map((e,i)=>`<span style="display:inline-flex;flex-direction:column;align-items:center">${card(e,'small'+(e===chosen?' hl':''))}<small class="note" style="font-size:11px">${i+1}</small></span>`).join('')}</div>`
+      +big(round<3?'다시 3줄로 놓기 ▶':'정리하기 ▶'),{'[data-go]':()=>round<3?deal():onEnd&&onEnd()});};
+  const finale=()=>{
+    if(mode==='show'){
+      paint(el,cue('이제 마법 주문을 걸게. 수리수리 마수리! 네 카드를 찾아낼 거야.')+hush('카드를 왼쪽 위부터 하나씩 세다가 <b>11번째</b> 카드를 눌러요!')
+        +`<div class="fan">${deck.map((e,i)=>card(e,'small down',`data-i="${i}"`)).join('')}</div>`,
+        {'[data-i]':t=>{const i=+t.dataset.i;t.classList.remove('down');
+          if(i===10){t.classList.add('hl');burst(t);setTimeout(()=>paint(el,cue('네 카드는… 바로 이거지!')+`<div class="row">${card(deck[10],'huge')}</div>`+big('공연 끝 🏆'),{'[data-go]':()=>onEnd&&onEnd()}),700);}
+          else{toast('앗, 다시 세어 봐요! 왼쪽 위가 1번째예요.');setTimeout(()=>t.classList.add('down'),900);}}});
+      return;}
+    const d=paint(el,say('수리수리 마수리… 카드를 한 장씩 세어 볼게요.')+`<div class="fan">${deck.map(e=>card(e,'small down')).join('')}</div>`);
+    const cs=$$('.pc',d);let k=0;
+    const step=()=>{if(k>0&&k<11)cs[k-1].classList.add('down');
+      if(k<11){cs[k].classList.remove('down');k++;setTimeout(step,reduce?60:260);}
+      else{cs[10].classList.add('hl');setTimeout(()=>{const d2=paint(el,say('네가 고른 카드는… 바로 이거죠?')+`<div class="row">${card(deck[10],'huge')}</div>`+big('맞았어요! 비밀 배우기 ▶'),{'[data-go]':()=>onEnd&&onEnd()});burst($('.huge',d2));},500);}};
+    setTimeout(step,500);};
+  mode==='secret'?choose():deal();
+}
+
+/* --- 키 카드 --- */
+function keyGame(el,{mode,onEnd}){
+  let deck=pickN(13); const key=deck[12]; let chosen=null,cuts=0;
+  const fan=(cls='down',attr)=>`<div class="fan">${deck.map((e,i)=>card(e,cls+(mode==='secret'&&e===key?' key':''),attr?attr(e,i):'')).join('')}</div>`;
+  const s1=()=>{
+    if(mode==='show'){const d=paint(el,cue('여기 카드 묶음이 있어. 잘 섞었지?')+hush('관객 몰래 맨 아래 카드(열쇠 카드)를 기억해요.')
+        +`<button class="peek" data-peek>🤫 맨 아래 카드 몰래 보기</button><div class="row" id="kk" hidden>${card(key,'key')}</div>`+big('기억했어요 ▶'),
+        {'[data-peek]':()=>{const k=$('#kk',d);k.hidden=false;setTimeout(()=>k.hidden=true,1600);},'[data-go]':s2});return;}
+    paint(el,say(mode==='secret'?`마술사는 섞은 다음 <b>맨 아래 카드</b>를 몰래 봐요. 이번 열쇠 카드는 ${key}! 🔑 표시를 따라가 봐요.`:'마술사가 카드를 섞고… 몰래 뭔가를 봤어요 👀 (무엇일까요?)')
+      +`<div class="row">${card(key,mode==='secret'?'key':'down')}</div>`+big('다음 ▶'),{'[data-go]':s2});};
+  const s2=()=>paint(el,(mode==='show'?cue('카드 한 장을 골라서 기억해 줘. 나는 안 볼게!'):say('이제 관객 차례! 카드 한 장을 골라 눌러 보세요.'))
+      +fan('down',(e,i)=>i<12?`data-e="${e}"`:'disabled'),
+      {'[data-e]':t=>{chosen=t.dataset.e;paint(el,`<div class="row">${card(chosen,'huge')}</div>`+say('이 카드를 꼭 기억하세요!','👀')+big('기억했어요 ▶'),{'[data-go]':s3});}});
+  const s3=()=>{deck=deck.filter(e=>e!==chosen);deck.unshift(chosen);
+    const draw=()=>{const d=paint(el,(mode==='show'?cue('고른 카드를 묶음 맨 위에 올려 줘. 그리고 원하는 만큼 카드를 잘라 줘!')
+        :say('고른 카드를 묶음 <b>맨 위</b>에 올려요. 이제 마음대로 잘라 보세요! (위쪽 카드를 떼어 아래로 보내요)'))
+        +(mode==='secret'?`<div class="fan">${deck.map(e=>card(e,'small'+(e===key?' key':'')+(e===chosen?' hl':''))).join('')}</div><p class="note" style="text-align:center">🔑 열쇠 카드 바로 다음에 초록 카드가 붙어 있죠?</p>`
+          :`<div class="row">${card('','down')}</div>`)
+        +`<p class="note" style="text-align:center">자른 횟수: <b class="count">${cuts}</b>번</p><div class="row"><button class="ghost" data-cut>✂️ 자르기</button>${big('다 잘랐어요 ▶',cuts?'data-go':'data-go disabled')}</div>`,
+        {'[data-cut]':()=>{const k=rnd(2,11);deck=deck.slice(k).concat(deck.slice(0,k));cuts++;draw();},'[data-go]':s4});};
+    draw();};
+  const s4=()=>{const ki=deck.indexOf(key),ci=(ki+1)%13;
+    if(mode==='show'){paint(el,cue('이제 카드를 쫙 펼쳐 볼게. 네 카드를 찾아낼 거야!')+hush('열쇠 카드를 찾아서, 바로 <b>오른쪽</b> 카드를 눌러요. (열쇠가 맨 끝이면 맨 처음 카드!)')+fan('',()=>'data-x'),
+      {'[data-x]':t=>{const i=$$('.pc',el).indexOf(t);
+        if(i===ci){t.classList.add('hl');burst(t);setTimeout(()=>paint(el,cue('네 카드는… 바로 이거지!')+`<div class="row">${card(chosen,'huge')}</div>`+big('공연 끝 🏆'),{'[data-go]':()=>onEnd&&onEnd()}),700);}
+        else toast('열쇠 카드 바로 오른쪽 카드를 찾아봐요!');}});return;}
+    const d=paint(el,say('카드를 펼쳐요. 마술사의 눈이 반짝!')+fan(''));
+    const cs=$$('.pc',d);
+    setTimeout(()=>{if(mode==='secret')cs[ki].classList.add('key');cs[ci].classList.add('hl');burst(cs[ci]);
+      d.insertAdjacentHTML('beforeend',say(mode==='secret'?`🔑 열쇠 카드 ${key} 바로 다음 카드가 관객 카드예요!${ki===12?' (열쇠가 맨 끝이라 맨 처음 카드로 이어졌어요.)':''} 몇 번을 잘라도 둘은 계속 붙어 있어요.`:`네 카드는 바로 ${chosen}! 맞죠?`)
+        +big(mode==='secret'?'정리하기 ▶':'비밀 배우기 ▶'));
+      on(d,'[data-go]',()=>onEnd&&onEnd());},700);};
+  s1();
+}
+
+/* --- 수정구슬 (9의 마술) --- */
+const SYM=['⭐','❤️','🍀','🌙','☀️','🎵','🌸','⚡','🔥','💎','🍄','🎈','🐟','🍩','🔔','🍭'];
+function symTable(target,hl){const others=SYM.filter(s=>s!==target);
+  return `<div class="tbl-wrap"><div class="tbl">${Array.from({length:99},(_,i)=>{const n=i+1,s=n%9===0&&n<90?target:others[rnd(0,others.length-1)];
+    return `<div class="${hl&&n%9===0&&n<90?'nine':''}">${n}<span>${s}</span></div>`;}).join('')}</div></div>`;}
+function crystalGame(el,{mode,onEnd}){
+  const target=SYM[rnd(0,SYM.length-1)];
+  const s1=()=>paint(el,(mode==='show'?cue('10부터 99까지 두 자리 숫자를 하나 생각해. 그리고 그 숫자에서 십의 자리 숫자와 일의 자리 숫자를 빼 줘.'):
+      say('10부터 99까지 <b>두 자리 숫자</b> 하나를 생각하세요. 그 숫자에서 <b>각 자리 숫자</b>를 빼요.'))
+      +`<div class="box"><p>예) 23이면 → 23 − 2 − 3 = <b class="count">18</b></p><p>예) 70이면 → 70 − 7 − 0 = <b class="count">63</b></p></div>`+big('계산했어요 ▶'),{'[data-go]':s2});
+  const s2=()=>paint(el,(mode==='show'?cue('이 표에서 네가 계산한 숫자를 찾아서, 그 칸의 그림을 마음속에 꼭 기억해 줘.')+hush('9나 18 칸의 그림을 몰래 봐 두면 정답을 알 수 있어요.')
+      :say('표에서 계산한 숫자를 찾아, 그 칸의 <b>그림</b>을 기억하세요.'))+symTable(target,false)+big('기억했어요 ▶'),{'[data-go]':s3});
+  const s3=()=>{let rubs=0;const d=paint(el,(mode==='show'?cue('이제 수정구슬에게 물어볼게. 수정구슬아, 이 친구의 마음을 보여 줘!'):say('수정구슬을 세 번 문질러(눌러) 보세요…'))
+      +`<button class="ball" aria-label="수정구슬"><span>${target}</span></button><p class="note" style="text-align:center">문지른 횟수 <b class="count" id="rb">0</b> / 3</p>`,
+      {'.ball':t=>{if(rubs>=3)return;rubs++;$('#rb',d).textContent=rubs;t.classList.add('glow');setTimeout(()=>t.classList.remove('glow'),250);
+        if(rubs===3){t.classList.add('show');burst(t);setTimeout(()=>{d.insertAdjacentHTML('beforeend',(mode==='show'?cue('네가 기억한 그림은 바로 이거지!')+big('공연 끝 🏆'):say('네가 기억한 그림은… 바로 이거죠?')+big('비밀 배우기 ▶')));on(d,'[data-go]',()=>onEnd&&onEnd());},700);}}});};
+  s1();
+}
+
+/* --- 1089 --- */
+function calc1089(el,{mode,onEnd}){
+  let dg=[5,3,2];
+  const num=a=>a[0]*100+a[1]*10+a[2];
+  const draw=()=>{const ok=Math.abs(dg[0]-dg[2])>=2&&dg[0]>0&&dg[2]>0;
+    const d=paint(el,`<div class="env" id="env">✉️ 예언 쪽지<small>마지막에 열어요</small></div>`
+      +(mode==='show'?cue('세 자리 숫자를 하나 정해 줘. 첫 숫자와 끝 숫자는 2 이상 차이 나게!'):say('세 자리 숫자를 만들어요. <b>첫 숫자와 끝 숫자가 2 이상 차이</b> 나게요! (예: 532, 961)'))
+      +`<div class="digits">${dg.map((v,i)=>`<div class="dg"><button data-up="${i}" aria-label="올리기">▲</button><b>${v}</b><button data-dn="${i}" aria-label="내리기">▼</button></div>`).join('')}</div>`
+      +(ok?'':`<p class="hint" style="text-align:center">첫 숫자와 끝 숫자가 2 이상 차이 나야 해요. (0은 빼고요)</p>`)
+      +big('이 숫자로 할래요 ▶',ok?'data-go':'data-go disabled'),
+      {'[data-up]':t=>{const i=+t.dataset.up;dg[i]=(dg[i]+1)%10;draw();},'[data-dn]':t=>{const i=+t.dataset.dn;dg[i]=(dg[i]+9)%10;draw();},'[data-go]':steps});};
+  const steps=()=>{const n=num(dg),r=num([dg[2],dg[1],dg[0]]),hi=Math.max(n,r),lo=Math.min(n,r),diff=hi-lo,ds=String(diff).padStart(3,'0'),rv=+ds.split('').reverse().join(''),tot=diff+rv;
+    const lines=[`① 고른 숫자: <b>${n}</b>`,`② 거꾸로 쓰면: <b>${r}</b>`,`③ 큰 수 − 작은 수: ${hi} − ${lo} = <b>${ds}</b>`,`④ 그 답을 거꾸로: <b>${String(rv).padStart(3,'0')}</b>`,`⑤ 두 수를 더하면: ${ds} + ${String(rv).padStart(3,'0')} = <b class="count">${tot}</b>`];
+    let k=1;
+    const show=()=>{const d=paint(el,`<div class="env" id="env">✉️ 예언 쪽지<small>마지막에 열어요</small></div><div class="calc">${lines.slice(0,k).map(l=>`<div>${l}</div>`).join('')}</div>`
+      +(k<lines.length?big('다음 계산 ▶'):(mode==='show'?cue('자, 이제 처음에 보여 준 예언 쪽지를 열어 볼까?'):say('마지막 답을 기억하고… 예언 쪽지를 열어 볼까요?'))+big('✉️ 쪽지 열기','data-open')),
+      {'[data-go]':()=>{k++;show();},'[data-open]':()=>{const env=$('#env',d);env.classList.add('open');env.innerHTML='1089';burst(env);
+        $('[data-open]',d).remove();d.insertAdjacentHTML('beforeend',(mode==='show'?cue('짜잔! 처음부터 1089가 나올 줄 알고 있었지!')+big('공연 끝 🏆','data-end'):say('어떤 숫자로 해도 마지막엔 <b>1089</b>! 비밀이 뭘까요?')+big('비밀 배우기 ▶','data-end')));
+        on(d,'[data-end]',()=>onEnd&&onEnd());}});};
+    show();};
+  draw();
+}
+
+/* --- 마술사의 선택 --- */
+const EQ_SETS=[['🍎','🍌','🍇'],['🐶','🐱','🐰'],['🚗','✈️','🚀'],['⚽','🏀','🎾'],['🍦','🍩','🍪']];
+function equiGame(el,{mode,onEnd}){
+  const items=EQ_SETS[rnd(0,EQ_SETS.length-1)], target=items[rnd(0,2)]; let path=[];
+  const itemsHTML=(alive,sel=[])=>`<div class="items">${items.map(e=>`<button data-e="${e}" class="${!alive.includes(e)?'gone':''} ${sel.includes(e)?'sel':''}" ${!alive.includes(e)?'disabled':''}>${e}</button>`).join('')}</div>`;
+  const env=`<div class="env" id="env">✉️ 예언 쪽지<small>마술사가 미리 썼어요</small></div>`;
+  const s1=()=>{let sel=[];
+    const draw=()=>paint(el,env+say('세 개 중에 아무거나 <b>두 개</b>를 골라 눌러 보세요.')+itemsHTML(items,sel)+big('이 두 개! ▶',sel.length===2?'data-go':'data-go disabled'),
+      {'[data-e]':t=>{const e=t.dataset.e;sel=sel.includes(e)?sel.filter(x=>x!==e):sel.length<2?[...sel,e]:[sel[1],e];draw();},
+       '[data-go]':()=>{if(sel.includes(target)){path.push('keep2');const out=items.find(e=>!sel.includes(e));
+          paint(el,env+say('좋아요! 고른 두 개는 <b>남겨 둘게요</b>. 나머지는 치워요.')+itemsHTML(sel)+big('다음 ▶'),{'[data-go]':()=>s2(sel)});}
+        else{path.push('drop2');paint(el,env+say('좋아요! 고른 두 개는 <b>치울게요</b>.')+itemsHTML([target])+big('다음 ▶'),{'[data-go]':end});}}});
+    draw();};
+  const s2=two=>paint(el,env+say('이번엔 둘 중 <b>하나</b>를 가리켜 보세요.')+itemsHTML(two),
+    {'[data-e]':t=>{const e=t.dataset.e;
+      if(e===target){path.push('pick-t');paint(el,env+say(`${e}를 골랐군요! 그럼 그걸 <b>남겨요</b>.`)+itemsHTML([target])+big('다음 ▶'),{'[data-go]':end});}
+      else{path.push('pick-o');paint(el,env+say(`${e}를 골랐군요! 그건 <b>치울게요</b>.`)+itemsHTML([target])+big('다음 ▶'),{'[data-go]':end});}}});
+  const end=()=>{const d=paint(el,env+say(`남은 건 ${target}! 이제 예언 쪽지를 열어 볼까요?`)+itemsHTML([target])+big('✉️ 쪽지 열기'),
+    {'[data-go]':()=>{const v=$('#env',d);v.classList.add('open');v.innerHTML=target;burst(v);$('[data-go]',d).remove();
+      d.insertAdjacentHTML('beforeend',say('예언이 딱 맞았어요! 그런데 관객이 정말 마음대로 고른 걸까요?')+`<div class="row"><button class="ghost" data-tree>🔍 내가 지나온 길 보기</button></div><div id="tr"></div>`+big('비밀 배우기 ▶','data-end'));
+      on(d,'[data-tree]',()=>{$('#tr',d).innerHTML=treeHTML(path);});on(d,'[data-end]',()=>onEnd&&onEnd());}});};
+  s1();
+}
+function treeHTML(path=[]){const p=k=>path.includes(k)?'path':'';
+  return `<div class="tree"><ul><li class="path"><span class="q">① "두 개를 골라 줘"</span>
+    <ul><li class="${p('keep2')}"><span class="q">예언이 들어 있으면 →</span> <span class="sayit">"그 두 개를 남기자"</span>
+      <ul><li class="${p('keep2')}"><span class="q">② "하나를 가리켜 줘"</span>
+        <ul><li class="${p('pick-t')}"><span class="q">예언을 가리키면 →</span> <span class="sayit">"그걸 남기자"</span></li>
+            <li class="${p('pick-o')}"><span class="q">다른 걸 가리키면 →</span> <span class="sayit">"그건 치우자"</span></li></ul></li></ul></li>
+      <li class="${p('drop2')}"><span class="q">예언이 없으면 →</span> <span class="sayit">"그 두 개를 치우자"</span></li></ul></li></ul>
+    <p class="note" style="margin-top:6px">어느 길로 가도 마지막엔 예언만 남아요!</p></div>`;}
+
+/* --- 달력 --- */
+function calInfo(){const now=new Date(),y=now.getFullYear(),m=now.getMonth();return {y,m,first:new Date(y,m,1).getDay(),last:new Date(y,m+1,0).getDate()};}
+const boxOf=d=>[d,d+1,d+2,d+7,d+8,d+9,d+14,d+15,d+16];
+function calValid(ci,d){return (ci.first+d-1)%7<=4&&d+16<=ci.last;}
+function calHTML(ci,box=[]){
+  return `<div class="calhead">${ci.y}년 ${ci.m+1}월</div><div class="cal">${['일','월','화','수','목','금','토'].map(w=>`<div class="dow">${w}</div>`).join('')}
+    ${Array.from({length:ci.first},()=>'<div></div>').join('')}${Array.from({length:ci.last},(_,i)=>{const d=i+1;return `<button data-d="${d}" class="${box.includes(d)?(d===box[4]?'mid':'in'):''}">${d}</button>`;}).join('')}</div>`;}
+function calendarGame(el,{mode,onEnd}){
+  const ci=calInfo();
+  const s1=()=>paint(el,(mode==='show'?cue('달력에서 가로 3칸, 세로 3칸 네모를 골라 줘. 네모의 왼쪽 위 날짜를 눌러!'):say('달력에서 <b>3칸 × 3칸</b> 네모를 골라요. 네모의 <b>왼쪽 위</b> 날짜를 눌러 보세요.'))+calHTML(ci),
+    {'[data-d]':t=>{const d=+t.dataset.d;if(!calValid(ci,d)){toast('오른쪽이나 아래로 3칸이 안 돼요. 다른 날짜를 골라요!');return;}s2(d);}});
+  const s2=d=>{const b=boxOf(d),sum=b.reduce((s,x)=>s+x,0);
+    const fin=()=>{const dd=paint(el,calHTML(ci,b)+`<div class="calc"><div>${b.join(' + ')}</div><div class="res">= ${sum}</div></div>`
+      +(mode==='show'?big('공연 끝 🏆'):say(`9개를 모두 더하면 정말 <b>${sum}</b>! 마술사는 숫자 하나만 듣고 어떻게 바로 알았을까요?`)+big('비밀 배우기 ▶')),{'[data-go]':()=>onEnd&&onEnd()});burst($('.res',dd));};
+    if(mode==='show'){const dd=paint(el,calHTML(ci,b)+cue('네모 안에서 가장 작은 숫자 하나만 나한테 알려 줘. 9개를 다 더한 값을 바로 맞혀 볼게!')
+        +hush(`가장 작은 수에 8을 더하고(가운데 숫자), 9를 곱해요.`)+`<button class="peek" data-peek>🤫 정답 살짝 보기</button><p id="pk" class="note" style="text-align:center" hidden>(${d} + 8) × 9 = ${sum}</p>`+big('🧮 다 더해서 확인하기'),
+        {'[data-peek]':()=>{$('#pk',dd).hidden=!$('#pk',dd).hidden;},'[data-go]':fin});return;}
+    const dd=paint(el,calHTML(ci,b)+say(`마술사는 가장 작은 숫자 <b>${d}</b>만 들었어요. 그런데… 9칸을 모두 더하면 <b>${sum}</b>!`)+big('정말인지 더해 보기'),{'[data-go]':fin});burst($('.say',dd));};
+  s1();
+}
+
+/* --- 예언 쪽지 (무대 도구) --- */
+function predictionTool(el,{intro,choices,fixed,onReady,label='예언'}){
+  const sealed=val=>{const d=paint(el,`<div class="env" id="env">✉️ ${label} 쪽지<small>마지막에 열어요</small></div>`
+      +hush('쪽지를 관객에게 보여 주고 "이건 마지막에 열 거야"라고 말해요.')+`<button class="peek" data-peek>🤫 쪽지 내용 살짝 보기</button><p id="pk" class="note" style="text-align:center" hidden>${val}</p>`
+      +(onReady?`<div id="more"></div>`:'')+big('✉️ 쪽지 열기','data-open'),
+      {'[data-peek]':()=>{$('#pk',d).hidden=!$('#pk',d).hidden;},'[data-open]':()=>{const v=$('#env',d);v.classList.add('open');v.innerHTML=val;burst(v);}});
+    if(onReady)onReady($('#more',d));};
+  if(fixed){sealed(fixed);return;}
+  paint(el,say(intro,'🤫')+`<div class="opts">${choices.map((c,i)=>`<button data-i="${i}">${c.label}</button>`).join('')}</div>`,{'[data-i]':t=>sealed(choices[+t.dataset.i].value)});
+}
+
+/* ================= 수업 데이터 ================= */
+const LEVELS=[
+  {id:'basic',tag:'기초',name:'마술의 원리',desc:'모든 마술에 숨은 다섯 가지 비밀 원리'},
+  {id:'easy',tag:'초급',name:'원리 응용 ①',desc:'원리 하나로 만드는 쉬운 마술'},
+  {id:'mid',tag:'중급',name:'원리 응용 ②',desc:'카드와 표를 쓰는 진짜 마술'},
+  {id:'hard',tag:'고급',name:'원리 응용 ③',desc:'원리를 섞어 쓰는 대마술'},
+];
+const ITEMS=[
+/* ---------- 기초 ---------- */
+{id:'b-math',lv:'basic',ic:'🔢',title:'계산 속 비밀',sub:'어떤 숫자로 해도 답이 같아지는 계산',
+ steps:[
+  {name:'원리 알기',run(el,go){paint(el,say('마술 중에는 <b>계산 속에 비밀</b>이 숨어 있는 마술이 많아요. 관객이 어떤 숫자를 생각해도, 정해진 순서로 계산하면 마지막엔 <b>항상 같은 답</b>이 나와요.')
+    +say('그래서 마술사는 관객의 숫자를 몰라도 답을 미리 알 수 있어요. 이런 마술을 <b>"저절로 되는 마술"</b>이라고 불러요.')+big('직접 해 보기 ▶'),{'[data-go]':go});}},
+  {name:'해 보기',run(el,go){const tried=new Set();
+    const d=paint(el,say('숫자 하나를 골라 보세요. <b>×2 → +6 → ÷2 → −처음 숫자</b> 순서로 계산해 볼게요.')+padHTML(1,9)+`<div id="res"></div><div id="why"></div>`+big('다음 ▶','data-go disabled'),
+      {'[data-n]':t=>{const n=+t.dataset.n;tried.add(n);t.classList.add('on');$('#res',d).innerHTML=chainHTML(n,6)+`<p class="note" style="text-align:center">해 본 숫자 ${tried.size}개 ${tried.size<3?'· 3개 이상 해 봐요':''}</p>`;
+        if(tried.size>=3){$('#why',d).innerHTML=say('모두 <b>3</b>이 나왔죠! 왜 그런지 주머니 그림으로 볼까요?')+bagHTML(6);$('[data-go]',d).disabled=false;}},
+       '[data-go]':go});}}],
+ quiz:[{q:'숫자를 생각하고 ×2, +6, ÷2, −처음 숫자를 하면 답은?',o:['3','6','처음 생각한 숫자','매번 달라요'],a:0,why:'+6의 절반인 3만 남아요.'},
+       {q:'+6 대신 +10을 하면 답은 몇이 될까요?',o:['10','5','20','2'],a:1,why:'더한 숫자의 절반! 10의 절반은 5예요.'}]},
+{id:'b-force',lv:'basic',ic:'🎯',title:'고르게 만들기',sub:'관객이 마술사가 원하는 걸 고르게 해요',
+ steps:[
+  {name:'원리 알기',run(el,go){paint(el,say('관객은 <b>자기 마음대로 골랐다</b>고 생각하지만, 사실은 마술사가 원하는 것을 고르게 만드는 기술이 있어요. 이걸 <b>"포스"</b>라고 해요.')
+    +say('비밀은 <b>말</b>에 있어요. 관객이 무엇을 고르든, 마술사가 말을 바꿔서 원하는 쪽으로 데려가요.')+big('직접 해 보기 ▶'),{'[data-go]':go});}},
+  {name:'해 보기',run(el,go){let times=0;const seen=new Set();
+    const play=()=>{const pair=shuffle(['🍎','🍌']),t=pair[rnd(0,1)];
+      paint(el,`<div class="env">✉️ 마술사의 예언<small>마지막에 열어요</small></div>`+say('둘 중 하나를 손가락으로 가리켜 보세요.')+`<div class="items">${pair.map(e=>`<button data-e="${e}">${e}</button>`).join('')}</div>`,
+        {'[data-e]':b=>{const e=b.dataset.e,mine=e===t;seen.add(mine?'t':'o');times++;
+          const d=paint(el,`<div class="env open">${t}</div>`+say(mine?`${e}를 골랐네요! 좋아요, <b>그걸 가져가세요</b>. 예언과 똑같죠?`:`${e}를 골랐네요! 좋아요, <b>그건 마술사가 먹을게요. 냠!</b> 남은 건 ${t}. 예언과 똑같죠?`)
+            +`<div class="box"><h3>비밀</h3><p>예언(${t})을 고르면 → "그걸 가져가세요"</p><p>다른 걸 고르면 → "그건 내가 가질게요"</p><p>어느 쪽이든 관객에게 남는 건 예언!</p></div>`
+            +`<div class="row"><button class="ghost" data-again>다른 걸 골라 다시 해 보기</button>${big('다음 ▶',seen.size>=2||times>=3?'data-go':'data-go disabled')}</div>`,{'[data-again]':play,'[data-go]':go});
+          burst($('.env',d));}});};
+    play();}}],
+ quiz:[{q:'관객이 마술사가 원하지 않는 것을 가리키면 어떻게 말해요?',o:['"그건 치우자"라고 말해요','"다시 골라"라고 말해요','마술을 그만둬요'],a:0,why:'다시 고르라고 하면 들통나요. 자연스럽게 치우면 돼요.'},
+       {q:'포스 마술에서 가장 중요한 것은?',o:['어떤 경우든 자연스럽게 말하기','관객에게 비밀 알려 주기','아주 빨리 하기'],a:0,why:'처음부터 그렇게 하려던 것처럼 당당하게 말해야 해요.'}]},
+{id:'b-key',lv:'basic',ic:'🔑',title:'열쇠 찾기',sub:'몰래 기억한 열쇠 옆에 비밀이 있어요',
+ steps:[
+  {name:'원리 알기',run(el,go){paint(el,say('마술사는 몰래 <b>열쇠(키)</b>가 되는 것 하나를 기억해요.')+say('그리고 관객의 비밀이 <b>열쇠 바로 옆</b>에 오게 만들어요. 그러면 열쇠만 찾으면 관객의 비밀도 바로 찾을 수 있어요!')+big('직접 해 보기 ▶'),{'[data-go]':go});}},
+  {name:'해 보기',run(el,go){let round=0;
+    const play=()=>{const cs=pickN(8),ki=rnd(0,6);
+      paint(el,say(`(${round+1}/3) 🔑 열쇠 카드만 앞면이 보여요. 관객 카드는 열쇠 <b>바로 오른쪽</b>에 있어요. 찾아서 눌러 보세요!`)
+        +`<div class="fan">${cs.map((e,i)=>card(e,i===ki?'key':'down',`data-i="${i}"`)).join('')}</div>`,
+        {'[data-i]':t=>{const i=+t.dataset.i;if(i===ki)return;t.classList.remove('down');
+          if(i===ki+1){t.classList.add('hl');burst(t);round++;setTimeout(()=>round<3?play():paint(el,say('세 번 모두 찾았어요! 열쇠만 알면 비밀은 바로 옆에 있어요.')+big('퀴즈 풀기 ▶'),{'[data-go]':go}),800);}
+          else{toast('열쇠 바로 오른쪽 카드예요!');setTimeout(()=>t.classList.add('down'),700);}}});};
+    play();}}],
+ quiz:[{q:'열쇠 카드가 🐶이고 카드 순서가 🐱 🐶 🐰 🦊 라면 관객 카드는?',o:['🐱','🐰','🦊'],a:1,why:'열쇠 🐶 바로 다음인 🐰예요.'},
+       {q:'열쇠 원리에서 마술사가 몰래 기억하는 것은?',o:['관객이 고른 카드','열쇠 카드','카드의 개수'],a:1,why:'관객 카드는 몰라도 돼요. 열쇠만 알면 찾을 수 있어요.'}]},
+{id:'b-code',lv:'basic',ic:'🧩',title:'숨은 정보',sub:'"있어요/없어요" 대답 속에 숫자가 숨어 있어요',
+ steps:[
+  {name:'원리 알기',run(el,go){paint(el,say('관객이 <b>"있어요 / 없어요"</b>라고만 대답해도, 그 대답 속에 숫자가 숨어 있어요.')
+    +say('숫자를 <b>1, 2, 4</b> 조각으로 나눠 생각하면 돼요. 동전 1원, 2원, 4원만 있으면 1원부터 7원까지 모두 만들 수 있거든요!')
+    +`<div class="box"><p>3 = 1 + 2</p><p>5 = 1 + 4</p><p>6 = 2 + 4</p><p>7 = 1 + 2 + 4</p></div>`+big('마술 체험하기 ▶'),{'[data-go]':go});}},
+  {name:'체험',run(el,go){binGame(el,{bits:[1,2,4],mode:'learn',onEnd:go});}},
+  {name:'비밀',run(el,go){const d=paint(el,say('각 카드의 <b>맨 앞 숫자</b>를 보세요. 1, 2, 4! "있어요"라고 한 카드의 맨 앞 숫자만 더하면 관객의 숫자예요.')
+      +`<div class="ncards">${[1,2,4].map((b,i)=>ncardHTML(b,7,{hl:true,label:'카드 '+(i+1)})).join('')}</div>`
+      +say('숫자를 눌러 보면 어느 카드에 들어 있는지 보여요.')+padHTML(1,7)+`<p id="r" class="note" style="text-align:center"></p>`+big('퀴즈 풀기 ▶'),
+      {'[data-n]':t=>{const n=+t.dataset.n;$$('.ncard',d).forEach((c,i)=>{const on=n&[1,2,4][i];c.classList.toggle('lit',!!on);c.classList.toggle('dim',!on);});
+        $$('.pad button',d).forEach(b=>b.classList.toggle('on',b===t));$('#r',d).textContent=`${n} = ${[1,2,4].filter(b=>n&b).join(' + ')}`;},'[data-go]':go});}}],
+ quiz:[{q:'관객이 1번 카드와 4번 카드(맨 앞 숫자 1, 4)에 "있어요"라고 했어요. 숫자는?',o:['4','5','14','7'],a:1,why:'1 + 4 = 5'},
+       {q:'맨 앞 숫자가 2, 4인 카드에 "있어요"라고 했다면?',o:['6','8','24','2'],a:0,why:'2 + 4 = 6'}]},
+{id:'b-show',lv:'basic',ic:'👀',title:'시선과 연기',sub:'관객의 눈을 이끄는 마술사의 기술',
+ steps:[
+  {name:'원리 알기',run(el,go){paint(el,say('마술사는 관객이 <b>어디를 볼지</b> 정해요. 반짝이는 것, 큰 소리, 마술사의 눈길이 가는 곳을 관객도 따라 봐요. 이걸 <b>"시선 돌리기"</b>라고 해요.')
+    +say('비밀 행동은 관객이 다른 곳을 볼 때 해요. 그리고 계산 마술도 <b>마법 주문</b>처럼 이야기로 꾸미면 훨씬 신기해져요.')+big('시선 실험하기 ▶'),{'[data-go]':go});}},
+  {name:'시선 실험',run(el,go){const em=pickN(10),grid=em.slice(0,9),spare=em[9];
+    const d=paint(el,say('그림 9개를 잘 기억하세요. 준비되면 시작을 눌러요!')+`<div class="g3">${grid.map((e,i)=>`<button data-i="${i}" disabled>${e}</button>`).join('')}</div>`+big('시작','data-start'),
+      {'[data-start]':t=>{t.remove();const ch=rnd(0,8);
+        setTimeout(()=>{const f=document.createElement('div');f.className='flash';document.body.appendChild(f);
+          const l=document.createElement('div');l.className='lookhere';l.textContent='✨';l.style.left='12%';l.style.top='18%';document.body.appendChild(l);chime();
+          $$('.g3 button',d)[ch].textContent=spare;setTimeout(()=>{f.remove();l.remove();},1300);
+          setTimeout(()=>{d.insertAdjacentHTML('afterbegin',say('반짝이에 눈이 갔죠? 그 사이 그림 하나가 바뀌었어요! 어떤 걸까요?'));$$('.g3 button',d).forEach(b=>b.disabled=false);},1400);},900);},
+       '[data-i]':t=>{if(d.dataset.done)return;d.dataset.done=1;const ch=$$('.g3 button',d).findIndex(b=>b.textContent===spare);const btns=$$('.g3 button',d);btns[ch].classList.add('hl');
+        if(+t.dataset.i!==ch)t.classList.add('bad');
+        d.insertAdjacentHTML('beforeend',say(+t.dataset.i===ch?'눈이 정말 좋네요! 그래도 대부분의 사람은 놓쳐요.':'바뀐 건 초록색 칸이었어요! 반짝이 때문에 못 봤죠? 그게 바로 시선 돌리기예요.')+big('다음 ▶'));on(d,'[data-go]',go);}});}},
+  {name:'마술사 약속',run(el,go){const P=[['비밀은 절대 말하지 않기','비밀을 알면 신기함이 사라져요. "마술사의 비밀이야!" 하고 웃어요.'],['같은 사람에게 같은 마술 두 번 하지 않기','두 번 보면 비밀을 눈치채기 쉬워요. 다른 마술을 보여 줘요.'],['충분히 연습하기','거울 앞에서, 가족 앞에서 먼저 연습해요.'],['실수해도 웃으며 계속하기','실수는 진짜 마술사에게도 일어나요. 당황하지 않는 게 기술이에요.']];
+    const ok=new Set();
+    const draw=()=>paint(el,say('진짜 마술사들이 지키는 약속이에요. 하나씩 눌러서 약속해요!')+`<div class="pledge">${P.map(([a,b],i)=>`<button data-p="${i}" class="${ok.has(i)?'ok':''}">${ok.has(i)?'🔏':'☐'} ${a}${ok.has(i)?`<small>${b}</small>`:''}</button>`).join('')}</div>`
+      +big(ok.size===4?'약속 완료! ▶':'모두 눌러 약속해요',ok.size===4?'data-go':'data-go disabled'),{'[data-p]':t=>{ok.add(+t.dataset.p);draw();if(ok.size===4)burst($('.pledge',el));},'[data-go]':go});
+    draw();}}],
+ quiz:[{q:'친구가 "어떻게 한 거야? 알려 줘!"라고 하면?',o:['"마술사의 비밀이야!" 하고 웃어요','바로 알려 줘요','화를 내요'],a:0,why:'비밀을 지켜야 다음에도 신기해요.'},
+       {q:'같은 친구가 "한 번 더 해 줘!"라고 하면?',o:['다른 마술을 보여 줘요','똑같이 또 해요','비밀을 알려 줘요'],a:0,why:'두 번 보면 비밀이 들통나기 쉬워요.'}]},
+
+/* ---------- 초급 ---------- */
+{id:'e-five',lv:'easy',ic:'✨',title:'마법의 숫자',sub:'관객 머릿속 숫자를 맞혀요',pr:'계산 속 비밀',
+ steps:[
+  {name:'체험',run(el,go){const add=[6,8,10,12,14][rnd(0,4)];const lines=['그 숫자에 <b>2를 곱하세요</b>. (두 배!)',`거기에 <b>${add}을 더하세요</b>.`,'이제 <b>반으로 나누세요</b>. (÷2)','마지막으로 <b>처음 생각한 숫자를 빼세요</b>.'];let i=0;
+    const s=()=>paint(el,(i===0?say('1부터 10까지 숫자 하나를 마음속으로 생각하세요. 손가락으로 세어도 돼요!'):'')+say(lines[i])+big('했어요 ▶'),{'[data-go]':()=>{i++;i<4?s():fin();}});
+    const fin=()=>{const d=paint(el,say('수리수리 마수리… 지금 머릿속에 있는 숫자는…')+`<div class="trophy"><div class="stars disp" style="font-size:80px">${add/2}</div></div>`+say('맞았죠? 비밀을 알아볼까요?')+big('비밀 배우기 ▶'),{'[data-go]':go});burst($('.trophy',d));};
+    paint(el,say('마음을 읽는 마술이에요. 준비됐나요?')+big('시작 ✨'),{'[data-go]':s});}},
+  {name:'비밀',run(el,go){let add=10;
+    const draw=()=>{const d=paint(el,say('기초에서 배운 <b>계산 속 비밀</b>이에요! 답은 언제나 <b>더한 숫자의 절반</b>이에요.')+bagHTML(add)
+      +say('더하는 숫자를 바꿔 보세요. 매번 바꾸면 관객이 눈치채지 못해요!')+`<div class="pad">${[6,8,10,12,14,20].map(a=>`<button data-a="${a}" class="${a===add?'on':''}">+${a}</button>`).join('')}</div>`
+      +chainHTML(rnd(1,10),add)+`<div class="box"><h3>꼭 지킬 것</h3><p>더하는 숫자는 <b>짝수</b>로! 홀수면 반으로 나눌 때 소수가 나와요.</p></div>`+big('퀴즈 풀기 ▶'),
+      {'[data-a]':t=>{add=+t.dataset.a;draw();},'[data-go]':go});};
+    draw();}}],
+ quiz:[{q:'관객에게 "14를 더해"라고 했다면 답은?',o:['14','7','28','알 수 없어요'],a:1,why:'14의 절반인 7!'},
+       {q:'더하라고 할 숫자로 좋은 것은?',o:['짝수','홀수','아무거나'],a:0,why:'짝수여야 반으로 깔끔하게 나눠져요.'}],
+ show:{prep:['종이와 연필 (관객이 계산할 때 써도 돼요)','예언 쪽지 (선택)'],
+  script:[{s:'지금부터 마음을 읽는 마술을 보여 줄게!',a:'예언 쪽지에 답(더하라고 할 숫자의 절반)을 미리 써서 접어 둬요.'},
+   {s:'1부터 10까지 숫자 하나를 마음속으로 생각해. 나한테 말하면 안 돼!'},{s:'그 숫자에 2를 곱해 봐. 두 배로!'},
+   {s:'거기에 10을 더해 봐.',a:'다른 짝수를 말해도 돼요. 답은 그 숫자의 절반!'},{s:'이제 반으로 나눠 봐.'},{s:'처음에 생각한 숫자를 빼 봐.'},
+   {s:'음… 보인다… 지금 네 머릿속 숫자는 5지?',a:'이마에 손을 대고 천천히 말하면 더 신기해요. 쪽지를 썼다면 펼쳐 보여요.'}],
+  tool:el=>predictionTool(el,{intro:'관객에게 더하라고 할 숫자를 고르세요. 쪽지에는 정답이 들어가요.',choices:[6,8,10,12,14,20].map(a=>({label:`+${a} 라고 말할래요 → 예언 ${a/2}`,value:String(a/2)})),
+    onReady:m=>{m.innerHTML=cue('1~10 숫자 생각 → ×2 → +(고른 숫자) → ÷2 → −처음 숫자');}})}},
+{id:'e-dice',lv:'easy',ic:'🎲',title:'주사위 투시',sub:'안 보이는 주사위 면을 맞혀요',pr:'계산 속 비밀',
+ steps:[{name:'체험',run(el,go){diceGame(el,{mode:'learn',onEnd:go});}},
+  {name:'비밀',run(el,go){paint(el,say('주사위의 비밀! <b>마주 보는 두 면을 더하면 항상 7</b>이에요.')
+    +`<div class="pairs">${[[1,6],[2,5],[3,4]].map(([a,b])=>`<div>${die(a,'mini')}<span class="disp">+</span>${die(b,'mini')}<span class="disp">= 7</span></div>`).join('')}</div>`
+    +say('주사위 3개의 위아래를 모두 더하면 7 × 3 = <b>21</b>. 그중 보이는 건 맨 위 하나뿐이니까 <b>21 − 맨 위 숫자</b>가 숨은 면의 합이에요!')
+    +`<div class="box"><h3>연기 팁</h3><p>바로 말하지 말고 주사위에 손을 대고 "투시 중…"이라고 해요. 계산할 시간도 벌 수 있어요.</p></div>`+big('퀴즈 풀기 ▶'),{'[data-go]':go});}}],
+ quiz:[{q:'주사위 탑 맨 위 숫자가 2예요. 숨은 면 5개의 합은?',o:['19','21','12','5'],a:0,why:'21 − 2 = 19'},
+       {q:'주사위의 마주 보는 두 면을 더하면?',o:['6','7','12'],a:1,why:'1과 6, 2와 5, 3과 4. 모두 7이에요.'}],
+ show:{prep:['주사위 3개 (모양이 같은 일반 주사위)'],
+  script:[{s:'주사위 3개를 굴려서 탑처럼 쌓아 줄래?',a:'관객이 쌓는 동안 맨 위 숫자를 슬쩍 봐요.'},
+   {s:'나는 주사위 속을 투시할 수 있어. 안 보이는 면 5개를 다 더한 숫자를 맞혀 볼게.',a:'머릿속으로 21 − (맨 위 숫자)를 계산해요.'},
+   {s:'음… 보인다… 바로 ○○이야!',a:'이마에 손가락을 대고 집중하는 척!'},{s:'주사위를 하나씩 들어서 같이 더해 볼까?',a:'관객이 직접 확인하게 해요.'}],
+  tool:el=>diceGame(el,{mode:'show',onEnd:()=>logPrompt(el)})}},
+{id:'e-cards',lv:'easy',ic:'🃏',title:'숫자 카드 마술',sub:'카드 4장으로 1~15를 맞혀요',pr:'숨은 정보',
+ steps:[{name:'체험',run(el,go){binGame(el,{bits:[1,2,4,8],mode:'learn',onEnd:go});}},
+  {name:'비밀',run(el,go){const d=paint(el,say('기초에서 배운 <b>숨은 정보</b>를 카드 4장으로 늘렸어요. 맨 앞 숫자가 <b>1, 2, 4, 8</b>! 관객이 "있어요"라고 한 카드의 맨 앞 숫자를 더하면 돼요.')
+      +`<div class="ncards">${[1,2,4,8].map((b,i)=>ncardHTML(b,15,{hl:true,label:'카드 '+(i+1)})).join('')}</div>`
+      +say('숫자를 눌러서 어느 카드에 들어 있는지 확인해 보세요.')+padHTML(1,15)+`<p id="r" class="note" style="text-align:center"></p>`
+      +`<div class="box"><h3>도전!</h3><p>카드를 5장(맨 앞 16 추가)으로 늘리면 1~31까지 맞힐 수 있어요. 실전 무대에서 해 볼 수 있어요.</p></div>`+big('퀴즈 풀기 ▶'),
+      {'[data-n]':t=>{const n=+t.dataset.n;$$('.ncard',d).forEach((c,i)=>{const on=n&[1,2,4,8][i];c.classList.toggle('lit',!!on);c.classList.toggle('dim',!on);});
+        $$('.pad button',d).forEach(b=>b.classList.toggle('on',b===t));$('#r',d).textContent=`${n} = ${[1,2,4,8].filter(b=>n&b).join(' + ')}`;},'[data-go]':go});}}],
+ quiz:[{q:'맨 앞 숫자가 1, 2, 8인 카드에 "있어요"라고 했어요. 숫자는?',o:['11','12','128','10'],a:0,why:'1 + 2 + 8 = 11'},
+       {q:'카드 4장의 맨 앞 숫자는?',o:['1, 2, 3, 4','1, 2, 4, 8','2, 4, 6, 8'],a:1,why:'두 배씩 커져요: 1, 2, 4, 8'}],
+ show:{prep:['숫자 카드 (이 화면을 보여 주거나, 종이에 그대로 따라 그려요)'],
+  script:[{s:'1부터 15까지 숫자 하나를 마음속으로 생각해.'},{s:'카드를 한 장씩 보여 줄게. 네 숫자가 있으면 "있어", 없으면 "없어"라고 말해 줘.',a:'"있어"라고 한 카드의 맨 앞 숫자를 머릿속으로 더해요.'},
+   {s:'고마워. 이제 네 마음을 읽어 볼게…'},{s:'네가 생각한 숫자는 ○○이야!',a:'바로 말하지 말고 잠깐 뜸을 들여요.'}],
+  tool:el=>{paint(el,say('몇 장으로 공연할까요?','🎩')+`<div class="row"><button class="big" data-b="4">4장 (1~15)</button><button class="ghost" data-b="5">5장 도전 (1~31)</button></div>`,
+    {'[data-b]':t=>binGame(el,{bits:t.dataset.b==='5'?[1,2,4,8,16]:[1,2,4,8],mode:'show',onEnd:()=>logPrompt(el)})});}}},
+
+/* ---------- 중급 ---------- */
+{id:'m-21',lv:'mid',ic:'🔮',title:'21장 카드 마술',sub:'세 번 물어보면 카드를 찾아요',pr:'계산 속 비밀 + 열쇠',
+ steps:[{name:'체험',run(el,go){game21(el,{mode:'learn',onEnd:go});}},
+  {name:'비밀 보기',run(el,go){paint(el,say('이번엔 카드가 어떻게 움직이는지 눈으로 따라가 봐요!')+`<ol class="secret"><li>카드를 한 장씩 왼쪽 → 가운데 → 오른쪽으로 놓아 7장씩 3줄을 만들어요.</li><li>관객이 고른 줄을 <b>가운데</b>에 넣고 카드를 모아요.</li><li>다시 3줄로 놓고 같은 질문. 모두 <b>3번</b> 해요.</li><li>위에서부터 세면 <b>11번째</b>가 관객의 카드!</li></ol>`+big('따라가 보기 ▶'),{'[data-go]':()=>game21(el,{mode:'secret',onEnd:go})});}},
+  {name:'정리',run(el,go){paint(el,say('고른 줄을 가운데에 넣을 때마다 카드가 한가운데로 모여요. 세 번이면 21장의 딱 한가운데, <b>11번째</b>에 도착해요!')
+    +`<div class="box"><h3>연기 팁</h3><p>카드를 모으는 동안 "카드에 마법 가루를 뿌리는 중이야"처럼 이야기를 해요. 관객이 순서를 신경 쓰지 않게 돼요.</p></div>`+big('퀴즈 풀기 ▶'),{'[data-go]':go});}}],
+ quiz:[{q:'관객이 고른 줄은 어디에 넣어서 모아요?',o:['맨 위','가운데','맨 아래','아무 데나'],a:1,why:'가운데에 넣어야 카드가 한가운데로 모여요.'},
+       {q:'3번 반복한 뒤 관객 카드는 위에서 몇 번째?',o:['1번째','7번째','11번째','21번째'],a:2,why:'21장의 한가운데, 11번째예요.'}],
+ show:{prep:['카드 21장 (트럼프 카드나 그림 카드)'],
+  script:[{s:'카드 21장 중에 한 장을 마음속으로 골라 줘. 나한테는 말하지 마!',a:'카드를 한 장씩 왼쪽 → 가운데 → 오른쪽 순서로 놓아 7장씩 3줄을 만들어요. 카드 앞면이 보이게!'},
+   {s:'네 카드가 어느 줄에 있어?',a:'그 줄을 다른 두 줄 사이(가운데)에 넣고 카드를 모아요.'},{s:'다시 놓을게. 이번엔 어느 줄에 있어?',a:'같은 방법으로 모두 3번 해요.'},
+   {s:'이제 마법 주문을 걸게. 수리수리 마수리!',a:'카드를 뒤집어 위에서부터 한 장씩 세면서 내려놓아요. 11번째에서 멈춰요.'},{s:'네 카드는… 바로 이거지!'}],
+  tool:el=>game21(el,{mode:'show',onEnd:()=>logPrompt(el)})}},
+{id:'m-key',lv:'mid',ic:'🗝️',title:'열쇠 카드 마술',sub:'섞고 잘라도 카드를 찾아요',pr:'열쇠 찾기',
+ steps:[{name:'체험',run(el,go){keyGame(el,{mode:'learn',onEnd:go});}},
+  {name:'비밀 보기',run(el,go){paint(el,say('기초에서 배운 <b>열쇠</b> 원리예요! 이번엔 🔑 열쇠 카드가 보이게 해서 다시 해 봐요.')+`<ol class="secret"><li>섞은 뒤 <b>맨 아래 카드</b>를 몰래 봐요. 이게 열쇠!</li><li>관객 카드를 묶음 <b>맨 위</b>에 올려요. 그러면 열쇠 바로 다음에 관객 카드가 와요.</li><li>몇 번을 잘라도 둘은 계속 붙어 있어요.</li><li>펼쳐서 열쇠 바로 다음 카드를 찾아요.</li></ol>`+big('열쇠 보면서 하기 ▶'),{'[data-go]':()=>keyGame(el,{mode:'secret',onEnd:go})});}},
+  {name:'정리',run(el,go){paint(el,say('자르기는 위쪽 카드를 아래로 옮기는 것뿐이라서 카드 순서가 빙글 돌기만 해요. 그래서 열쇠와 관객 카드는 절대 떨어지지 않아요.')
+    +`<div class="box"><h3>조심할 것</h3><p>자르기는 몇 번이든 괜찮지만, <b>섞으면 안 돼요!</b> 관객이 섞으려 하면 "자르기만 해 줘"라고 말해요.</p><p>열쇠가 맨 끝에 오면 관객 카드는 <b>맨 처음</b> 카드예요.</p></div>`+big('퀴즈 풀기 ▶'),{'[data-go]':go});}}],
+ quiz:[{q:'카드를 여러 번 잘라도 열쇠 카드와 관객 카드는?',o:['계속 붙어 있어요','멀리 떨어져요','순서가 뒤집혀요'],a:0,why:'자르기는 순서를 돌리기만 해요.'},
+       {q:'펼쳤더니 열쇠 카드가 맨 끝이에요. 관객 카드는?',o:['맨 처음 카드','끝에서 두 번째 카드','찾을 수 없어요'],a:0,why:'순서가 한 바퀴 이어져 있어서 맨 처음으로 넘어가요.'},
+       {q:'관객이 카드를 섞으려고 하면?',o:['"자르기만 해 줘"라고 말해요','마음대로 섞게 해요'],a:0,why:'섞으면 열쇠와 관객 카드가 떨어져요.'}],
+ show:{prep:['트럼프 카드 한 벌 (또는 그림 카드 묶음)'],
+  script:[{s:'여기 카드가 있어. 잘 섞어 볼게.',a:'섞은 뒤 맨 아래 카드를 몰래 봐요. (카드를 가지런히 하는 척하면서!)'},
+   {s:'카드를 펼칠 테니 한 장을 골라서 기억해 줘. 나는 안 볼게!'},{s:'그 카드를 묶음 맨 위에 올려 줘.'},
+   {s:'이제 원하는 만큼 카드를 잘라 줘. 여러 번 해도 돼!',a:'섞지는 못하게 해요. 자르기만!'},
+   {s:'카드를 펼쳐 볼게… 네 카드는… 이거지!',a:'앞면이 보이게 펼치고, 열쇠 카드 바로 다음 카드를 꺼내요.'}],
+  tool:el=>keyGame(el,{mode:'show',onEnd:()=>logPrompt(el)})}},
+{id:'m-crystal',lv:'mid',ic:'🪩',title:'수정구슬 마술',sub:'관객이 기억한 그림을 맞혀요',pr:'계산 속 비밀 + 시선',
+ steps:[{name:'체험',run(el,go){crystalGame(el,{mode:'learn',onEnd:go});}},
+  {name:'비밀',run(el,go){const target=SYM[rnd(0,SYM.length-1)];let t=2,o=3;
+    const draw=()=>{const n=t*10+o,r=n-t-o;
+      const d=paint(el,say('어떤 두 자리 수로 계산해도 답은 <b>9, 18, 27, 36, 45, 54, 63, 72, 81</b> 중 하나예요. 모두 9의 배수!')
+        +`<div class="box"><p>십의 자리 <b>${t}</b> · 일의 자리 <b>${o}</b></p><div class="pad">${[1,2,3,4,5,6,7,8,9].map(x=>`<button data-t="${x}" class="${x===t?'on':''}">${x}</button>`).join('')}</div>
+          <div class="pad" style="margin-top:6px">${[0,1,2,3,4,5,6,7,8,9].map(x=>`<button data-o="${x}" class="${x===o?'on':''}">${x}</button>`).join('')}</div>
+          <div class="calc" style="margin-top:8px"><div>${n} − ${t} − ${o}</div><div class="res">= ${r}</div></div><p class="note">십의 자리 숫자 × 9 = ${t} × 9 = ${r}</p></div>`
+        +say('표를 보면 9의 배수 칸에만 <b>모두 같은 그림</b>이 있어요! 그래서 구슬은 늘 그 그림을 보여 주면 돼요.')+symTable(target,true)
+        +`<div class="box"><h3>들키지 않는 법</h3><p>할 때마다 그림을 바꾼 새 표를 써요. 그리고 90과 99 칸은 9의 배수지만 다른 그림이라 관객이 눈치채기 어려워요.</p></div>`+big('퀴즈 풀기 ▶'),
+        {'[data-t]':b=>{t=+b.dataset.t;draw();},'[data-o]':b=>{o=+b.dataset.o;draw();},'[data-go]':go});};
+    draw();}}],
+ quiz:[{q:'관객이 41을 골랐어요. 계산하면?',o:['36','37','40','45'],a:0,why:'41 − 4 − 1 = 36'},
+       {q:'표에서 9, 18, 27… 칸의 그림은?',o:['모두 같아요','모두 달라요','칸마다 숫자가 써 있어요'],a:0,why:'답이 늘 9의 배수라서 그 칸들만 같은 그림이면 돼요.'},
+       {q:'같은 사람에게 또 할 때는?',o:['그림을 바꾼 새 표를 써요','같은 표를 써요'],a:0,why:'같은 그림이 또 나오면 들통나요.'}],
+ show:{prep:['이 앱의 수정구슬 표 (화면 공연에서 매번 새로 만들어져요)'],
+  script:[{s:'10부터 99까지 두 자리 숫자를 하나 생각해.'},{s:'그 숫자에서 십의 자리 숫자랑 일의 자리 숫자를 빼 줘. 예를 들어 23이면 23 − 2 − 3!'},
+   {s:'이 표에서 그 숫자를 찾아서 그림을 기억해 줘.',a:'표를 보여 주기 전에 9나 18 칸 그림을 몰래 봐 둬요.'},
+   {s:'수정구슬아, 이 친구의 마음을 보여 줘…',a:'구슬을 보며 천천히 주문을 외워요.'},{s:'네가 기억한 그림은… 바로 이거지!'}],
+  tool:el=>crystalGame(el,{mode:'show',onEnd:()=>logPrompt(el)})}},
+
+/* ---------- 고급 ---------- */
+{id:'h-1089',lv:'hard',ic:'📜',title:'1089 예언',sub:'처음부터 답을 알고 있는 예언 마술',pr:'계산 속 비밀 + 예언',
+ steps:[{name:'체험',run(el,go){calc1089(el,{mode:'learn',onEnd:go});}},
+  {name:'비밀',run(el,go){const ds=[198,297,396,495,594,693,792,891];
+    const d=paint(el,say('세 자리 수를 거꾸로 해서 빼면, 답은 언제나 이 8개 중 하나예요. 눌러 보세요!')
+      +`<div class="pad">${ds.map(x=>`<button data-x="${x}" style="width:60px">${x}</button>`).join('')}</div><div id="r" class="calc"></div>`
+      +say('어떤 답이든 <b>거꾸로 해서 더하면 1089</b>! 그래서 예언 쪽지에는 늘 1089를 써 두면 돼요.')
+      +`<div class="box"><h3>발견해 보세요</h3><p>빼기 답의 가운데 숫자는 항상 <b>9</b>, 앞뒤 숫자를 더하면 항상 <b>9</b>예요.</p></div>`+big('퀴즈 풀기 ▶'),
+      {'[data-x]':t=>{const x=+t.dataset.x,r=+String(x).split('').reverse().join('');$$('.pad button',d).forEach(b=>b.classList.toggle('on',b===t));$('#r',d).innerHTML=`<div>${x} + ${r}</div><div class="res">= ${x+r}</div>`;},'[data-go]':go});}}],
+ quiz:[{q:'관객이 532로 했어요. 마지막 답은?',o:['1089','1098','532','999'],a:0,why:'532 − 235 = 297, 297 + 792 = 1089'},
+       {q:'숫자를 고를 때 규칙은?',o:['첫 숫자와 끝 숫자가 2 이상 차이 나게','세 숫자가 모두 같게','아무 숫자나'],a:0,why:'첫 숫자와 끝 숫자가 같으면 빼기 답이 0이 돼서 실패해요.'}],
+ show:{prep:['종이와 연필 (또는 계산기)','예언 쪽지: 미리 1089라고 써서 접어 둬요'],
+  script:[{s:'이 쪽지에 내가 미리 예언을 써 두었어. 마지막에 열어 볼게.',a:'쪽지를 관객이 볼 수 있는 곳에 둬요.'},
+   {s:'세 자리 숫자를 하나 써 줘. 첫 숫자와 끝 숫자는 2 이상 차이 나게!'},{s:'그 숫자를 거꾸로 써서, 큰 수에서 작은 수를 빼 줘.'},
+   {s:'나온 답을 다시 거꾸로 써서, 이번엔 두 수를 더해 줘.'},{s:'답이 뭐야? … 이제 예언 쪽지를 열어 볼까? 짜잔, 1089!',a:'관객이 답을 말하면 놀라는 척하며 천천히 쪽지를 펼쳐요.'}],
+  tool:el=>calc1089(el,{mode:'show',onEnd:()=>logPrompt(el)})}},
+{id:'h-choice',lv:'hard',ic:'🎭',title:'마술사의 선택',sub:'관객이 고른 것까지 예언해요',pr:'고르게 만들기',
+ steps:[{name:'체험',run(el,go){equiGame(el,{mode:'learn',onEnd:go});}},
+  {name:'비밀',run(el,go){paint(el,say('기초에서 배운 <b>고르게 만들기</b>를 물건 3개로 늘렸어요. 관객이 무엇을 고르든 말을 바꿔서 예언만 남게 해요.')+treeHTML(['keep2','pick-t','pick-o','drop2'])
+    +`<div class="box"><h3>성공의 열쇠</h3><p>"남기자"와 "치우자" 중 어떤 말을 할지 <b>관객이 고른 다음</b>에 정해요. 그리고 처음부터 그렇게 하려던 것처럼 당당하게!</p></div>`+big('다른 길로 다시 해 보기 ▶'),{'[data-go]':()=>equiGame(el,{mode:'learn',onEnd:go})});}}],
+ quiz:[{q:'예언은 🍇예요. 관객이 🍎과 🍌를 골랐다면 뭐라고 말해요?',o:['"그 두 개는 치우자"','"그 두 개를 남기자"','"다시 골라"'],a:0,why:'두 개를 치우면 🍇만 남아요.'},
+       {q:'예언은 🍇예요. 관객이 🍇와 🍎을 골라서 남겼고, 이번엔 🍎을 가리켰어요.',o:['"그건 치우자"','"그걸 남기자"'],a:0,why:'🍎을 치우면 🍇가 남아요.'},
+       {q:'이 마술에서 말을 정하는 때는?',o:['관객이 고른 다음','마술 시작 전에 미리'],a:0,why:'관객의 선택을 보고 알맞은 말을 골라요.'}],
+ show:{prep:['물건 3개 (과일, 인형, 장난감 등)','예언 쪽지: 3개 중 하나의 이름을 써서 접어 둬요'],
+  script:[{s:'이 쪽지에 예언을 써 두었어. 절대 바꿀 수 없어!'},{s:'여기 물건 3개가 있어. 아무거나 두 개를 가리켜 줘.',a:'예언이 들어 있으면 → "그 두 개를 남기자" / 없으면 → "그 두 개를 치우자"'},
+   {s:'(두 개가 남았다면) 이번엔 하나를 가리켜 줘.',a:'예언을 가리키면 → "그걸 남기자" / 다른 걸 가리키면 → "그건 치우자"'},{s:'마지막에 남은 건 이거네. 예언 쪽지를 열어 볼까?',a:'쪽지를 천천히 펼쳐 남은 물건과 나란히 보여 줘요.'}],
+  tool:el=>{const d=paint(el,say('예언할 물건을 고르거나 이름을 써요.','🤫')+`<div class="items">${['🍎','🍌','🍇','🐶','🐱','🐰','⚽','🚗'].map(e=>`<button data-e="${e}">${e}</button>`).join('')}</div>
+      <div class="row"><input type="text" id="eqName" placeholder="또는 직접 쓰기 (예: 빨간 컵)" maxlength="12"><button class="ghost" data-name>이걸로 할래요</button></div>`,
+      {'[data-e]':t=>go(t.dataset.e),'[data-name]':()=>{const v=($('#eqName',d).value||'').trim();if(!v){toast('예언할 물건 이름을 써 주세요.');return;}go(v.replace(/[<>&"]/g,''));}});
+    function go(v){predictionTool(el,{fixed:v,onReady:m=>{m.innerHTML=`<div class="row"><button class="ghost" data-t>🤫 말 바꾸기 안내 보기</button></div><div id="tt"></div>`;on(m,'[data-t]',()=>{const tt=$('#tt',m);tt.innerHTML=tt.innerHTML?'':treeHTML([]);});
+      m.insertAdjacentHTML('beforeend',`<div class="row" style="margin-top:10px"><button class="ghost" data-fin>🏆 공연 끝</button></div>`);on(m,'[data-fin]',()=>logPrompt(el));}});}}}},
+{id:'h-cal',lv:'hard',ic:'📅',title:'달력 번개 계산',sub:'숫자 하나만 듣고 9칸 합을 맞혀요',pr:'계산 속 비밀 + 연기',
+ steps:[{name:'체험',run(el,go){calendarGame(el,{mode:'learn',onEnd:go});}},
+  {name:'비밀',run(el,go){const ci=calInfo();
+    const draw=(d0)=>{const ok=d0&&calValid(ci,d0),b=ok?boxOf(d0):[];
+      const d=paint(el,say('달력 3×3 네모의 비밀! 9칸의 합은 언제나 <b>가운데 숫자 × 9</b>예요. 그리고 가운데 숫자는 <b>가장 작은 수 + 8</b>!')
+        +calHTML(ci,b)+(ok?`<div class="calc"><div>가장 작은 수 ${d0} + 8 = 가운데 ${d0+8}</div><div class="res">${d0+8} × 9 = ${(d0+8)*9}</div></div>`:`<p class="note" style="text-align:center">네모의 왼쪽 위 날짜를 눌러 보세요.</p>`)
+        +`<div class="box"><h3>×9 쉽게 하기</h3><p>10을 곱하고, 한 번 빼요. 예) 13 × 9 = 130 − 13 = <b>117</b></p></div>`
+        +`<div class="box"><h3>왜 그럴까?</h3><p>가운데를 중심으로 마주 보는 칸끼리 짝을 지으면 (위·아래, 왼쪽·오른쪽, 대각선) 짝마다 합이 <b>가운데 × 2</b>. 짝 4개에 가운데 1개를 더하면 가운데가 9개 있는 셈이에요!</p></div>`+big('퀴즈 풀기 ▶'),
+        {'[data-d]':t=>{const v=+t.dataset.d;if(!calValid(ci,v)){toast('오른쪽이나 아래로 3칸이 안 돼요.');return;}draw(v);},'[data-go]':go});};
+    draw(null);}}],
+ quiz:[{q:'가장 작은 수가 5예요. 9칸의 합은?',o:['117','45','108','126'],a:0,why:'가운데 13, 13 × 9 = 117'},
+       {q:'가운데 숫자는 가장 작은 수에 몇을 더한 거예요?',o:['8','9','7','3'],a:0,why:'오른쪽으로 한 칸(+1), 아래로 한 칸(+7). 합쳐서 +8!'},
+       {q:'12 × 9를 쉽게 계산하면?',o:['120 − 12 = 108','12 + 9 = 21','12 × 10 = 120'],a:0,why:'10을 곱하고 한 번 빼면 9를 곱한 거예요.'}],
+ show:{prep:['달력 (종이 달력이나 이 화면)','계산기 (관객 확인용)'],
+  script:[{s:'달력에서 가로 3칸, 세로 3칸 네모를 하나 골라 줘. 나는 안 볼게!'},{s:'네모 안에서 가장 작은 숫자만 알려 줄래?',a:'가장 작은 수 + 8 = 가운데. 가운데 × 9를 계산해요.'},
+   {s:'번개 계산! 9개를 모두 더하면 ○○이야!',a:'아주 빠르게 말해야 신기해요. 미리 연습!'},{s:'계산기로 확인해 볼래?'}],
+  tool:el=>calendarGame(el,{mode:'show',onEnd:()=>logPrompt(el)})}},
+];
+const byId=id=>ITEMS.find(x=>x.id===id);
+const lvItems=lv=>ITEMS.filter(x=>x.lv===lv);
+
+/* ================= 화면 ================= */
+function show(id){$$('.screen').forEach(s=>s.classList.toggle('on',s.id===id));window.scrollTo(0,0);}
+function levelOpen(lv){if(S.unlockAll)return true;const i=LEVELS.findIndex(l=>l.id===lv);return i===0||lvItems(LEVELS[i-1].id).every(x=>S.done[x.id]);}
+const totalShows=()=>Object.values(S.shows).reduce((s,n)=>s+n,0);
+function rankName(){const full=lv=>lvItems(lv).every(x=>S.done[x.id]);
+  if(full('hard')&&totalShows()>=5)return '🌟 무대의 대마술사';if(full('hard'))return '🥇 고급 마술사';if(full('mid'))return '🥈 중급 마술사';
+  if(full('easy'))return '🥉 초급 마술사';if(full('basic'))return '🌱 견습 마술사';return '🎒 마술 학교 신입생';}
+function renderHome(){
+  const stars=Object.values(S.stars).reduce((s,n)=>s+n,0);
+  $('#rank').innerHTML=`${rankName()}<small>⭐ ${stars} · 🎪 공연 ${totalShows()}번</small>`;
+  $('#levels').innerHTML=LEVELS.map(l=>{const open=levelOpen(l.id);
+    return `<section class="level ${open?'':'locked'}"><div class="level-head"><span class="tag">${l.tag}</span><h2>${l.name}</h2><span>${open?l.desc:'🔒 앞 단계를 모두 끝내면 열려요'}</span></div>
+      <div class="grid">${lvItems(l.id).map(x=>`<button class="lcard ${S.done[x.id]?'done':''}" data-open="${x.id}" ${open?'':'disabled'}><span class="ic" aria-hidden="true">${x.ic}</span><span><b>${x.title}</b><small>${x.sub}</small>${x.pr?`<small>원리: ${x.pr}</small>`:''}<div class="st">${S.done[x.id]?'★'.repeat(S.stars[x.id]||1)+'☆'.repeat(3-(S.stars[x.id]||1)):''}</div></span></button>`).join('')}</div></section>`;}).join('');
+  $('#snd').textContent=S.sound?'🔊 소리 켜짐':'🔈 소리 꺼짐';
+  $('#unlock').hidden=S.unlockAll;
+}
+on($('#levels'),'[data-open]',t=>openLesson(t.dataset.open));
+$$('[data-home]').forEach(b=>b.onclick=()=>{renderHome();show('home');});
+$('#toStage').onclick=()=>{renderStage();show('stage');};
+$('#snd').onclick=()=>{S.sound=!S.sound;save();renderHome();if(S.sound)chime();};
+$('#unlock').onclick=()=>{S.unlockAll=true;save();renderHome();toast('모든 수업이 열렸어요.');};
+$('#reset').onclick=function(){if(this.dataset.arm){S={done:{},stars:{},shows:{},unlockAll:false,sound:S.sound};save();delete this.dataset.arm;this.textContent='처음부터 다시';renderHome();toast('기록을 모두 지웠어요.');return;}
+  this.dataset.arm=1;this.textContent='⚠️ 한 번 더 누르면 기록이 지워져요';setTimeout(()=>{delete this.dataset.arm;this.textContent='처음부터 다시';},4000);};
+
+/* --- 수업 진행 --- */
+let L=null;
+function openLesson(id){L={item:byId(id),step:0,tok:Math.random()};show('lesson');renderLesson();}
+function renderLesson(){
+  const {item}=L,names=[...item.steps.map(s=>s.name),'퀴즈'],tok=L.tok=Math.random();
+  $('#lsTitle').textContent=`${item.ic} ${item.title}`;
+  $('#lsSteps').innerHTML=names.map((n,i)=>`<li data-s="${i}" class="${i<L.step?'done':i===L.step?'now':''}">${i+1}. ${n}</li>`).join('');
+  const body=$('#lsBody'),el=document.createElement('div');body.replaceChildren(el);window.scrollTo(0,0);
+  const go=()=>{if(L.tok!==tok)return;L.step++;renderLesson();};
+  if(L.step<item.steps.length)item.steps[L.step].run(el,go);
+  else if(L.step===item.steps.length)runQuiz(el,item.quiz,m=>finish(el,item,m));
+}
+$('#lsSteps').onclick=e=>{const li=e.target.closest('li.done');if(li){L.step=+li.dataset.s;renderLesson();}};
+function runQuiz(el,qs,done){
+  let i=0,miss=0;
+  const draw=()=>{const q=qs[i],order=shuffle(q.o.map((t,k)=>k));let solved=false;
+    const d=paint(el,`<p class="qnum">퀴즈 ${i+1} / ${qs.length}</p><p class="qq">${q.q}</p><div class="opts">${order.map(k=>`<button data-k="${k}">${q.o[k]}</button>`).join('')}</div><div id="fb"></div>`,
+      {'[data-k]':t=>{if(solved)return;const k=+t.dataset.k;
+        if(k===q.a){solved=true;t.classList.add('right');burst(t);$('#fb',d).innerHTML=`<p class="why">⭕ 맞았어요! ${q.why}</p>`+big(i<qs.length-1?'다음 문제 ▶':'결과 보기 ▶');on($('#fb',d),'[data-go]',()=>{i++;i<qs.length?draw():done(miss);});}
+        else{miss++;t.classList.add('wrong');t.disabled=true;$('#fb',d).innerHTML=`<p class="hint">앗, 다시 한 번 생각해 볼까요?</p>`;}}});};
+  draw();
+}
+function finish(el,item,miss){
+  const st=miss===0?3:miss<=2?2:1;S.done[item.id]=true;S.stars[item.id]=Math.max(S.stars[item.id]||0,st);save();
+  L.step=item.steps.length+1;
+  $('#lsSteps').innerHTML=[...item.steps.map(s=>s.name),'퀴즈'].map((n,i)=>`<li data-s="${i}" class="done">${i+1}. ${n}</li>`).join('');
+  const idx=ITEMS.indexOf(item),next=ITEMS.slice(idx+1).find(x=>levelOpen(x.lv));
+  const lvDone=lvItems(item.lv).every(x=>S.done[x.id]),lvName=LEVELS.find(l=>l.id===item.lv).tag;
+  const d=paint(el,`<div class="trophy"><div class="stars">${'⭐'.repeat(st)}${'☆'.repeat(3-st)}</div><h3>${item.title} 완료!</h3></div>`
+    +say(lvDone?`<b>${lvName}</b> 단계를 모두 끝냈어요! 지금 등급은 <b>${rankName()}</b>.`:st===3?'한 번도 안 틀렸어요. 진짜 마술사 같아요!':'잘했어요! 다시 하면 별을 더 받을 수 있어요.')
+    +`<div class="row">${item.show?`<button class="big" data-stage>🎪 무대에서 해 보기</button>`:''}${next?`<button class="${item.show?'ghost':'big'}" data-next>다음 수업: ${next.title} ▶</button>`:''}<button class="ghost" data-home2>학교로</button></div>`,
+    {'[data-stage]':()=>openShow(item.id),'[data-next]':()=>openLesson(next.id),'[data-home2]':()=>{renderHome();show('home');}});
+  burst($('.trophy',d));
+}
+
+/* --- 실전 무대 --- */
+function renderStage(){
+  $('#stageList').innerHTML=ITEMS.filter(x=>x.show).map(x=>{const ok=S.done[x.id];
+    return `<button class="lcard ${ok?'done':''}" data-show="${x.id}" ${ok?'':'disabled'}><span class="ic" aria-hidden="true">${x.ic}</span><span><b>${x.title}</b><small>${ok?x.sub:'🔒 수업을 먼저 끝내요'}</small><small>${LEVELS.find(l=>l.id===x.lv).tag} · 공연 ${S.shows[x.id]||0}번</small></span></button>`;}).join('');
+}
+on($('#stageList'),'[data-show]',t=>openShow(t.dataset.show));
+let SH=null;
+function openShow(id){SH={item:byId(id),tab:'script',line:0};show('show');renderShow();}
+$('#backStage').onclick=()=>{renderStage();show('stage');};
+on($('#shSeg'),'[data-tab]',t=>{SH.tab=t.dataset.tab;SH.line=0;renderShow();});
+function renderShow(){
+  const {item,tab}=SH,sc=item.show.script;$('#shTitle').textContent=`${item.ic} ${item.title}`;
+  $$('#shSeg button').forEach(b=>b.classList.toggle('on',b.dataset.tab===tab));
+  const body=$('#shBody'),el=document.createElement('div');body.replaceChildren(el);
+  if(tab==='script'){
+    if(SH.line===0){paint(el,say('공연 전에 준비물을 챙겨요. 챙긴 것은 눌러서 체크!','🎩')+`<ul class="prep">${item.show.prep.map((p,i)=>`<li><label><input type="checkbox" id="prep-${item.id}-${i}"> ${p}</label></li>`).join('')}</ul>`
+      +say('대본은 한 줄씩 넘기며 소리 내어 연습해요. 거울 앞이나 가족 앞에서 먼저!','🎩')+big('📜 대본 연습 시작 ▶'),{'[data-go]':()=>{SH.line=1;renderShow();}});return;}
+    const k=SH.line-1,ln=sc[k];
+    paint(el,`<div class="script"><span class="n">대본 ${k+1} / ${sc.length}</span><div class="line">🗣️ "${ln.s}"</div>${ln.a?`<div class="act">🤫 ${ln.a}</div>`:''}</div>
+      <div class="row"><button class="ghost" data-prev>◀ 이전</button>${k<sc.length-1?big('다음 ▶'):big('연습 끝! 화면으로 공연하기 ▶','data-tool')}</div>`,
+      {'[data-prev]':()=>{SH.line--;renderShow();},'[data-go]':()=>{SH.line++;renderShow();},'[data-tool]':()=>{SH.tab='tool';renderShow();}});return;}
+  if(tab==='tool'){
+    paint(el,say('이제 화면이 마술 도구가 돼요. 🎩 표시는 관객에게 하는 말, 🤫 표시는 마술사만 몰래 보는 부분이에요. 관객이 화면을 볼 땐 🤫 버튼을 누르지 않게 조심!','🎩')+big('🎪 막을 올려요!'),
+      {'[data-go]':()=>item.show.tool(el)});return;}
+  logPrompt(el);
+}
+function logPrompt(el){
+  const id=SH.item.id;
+  const d=paint(el,`<div class="trophy"><div class="stars">🎪</div><h3>공연 ${S.shows[id]||0}번</h3></div>`+say('공연은 어땠나요? 기록을 남겨요!','🎩')
+    +`<div class="row"><button class="big" data-ok>🎉 관객이 깜짝 놀랐어요!</button><button class="ghost" data-oops>😅 실수했어요, 더 연습할래요</button></div>`
+    +`<p class="note" style="text-align:center">공연을 5번 하면 고급 수업을 마친 마술사는 "무대의 대마술사"가 돼요.</p>`,
+    {'[data-ok]':()=>{S.shows[id]=(S.shows[id]||0)+1;save();const dd=paint(el,`<div class="trophy"><div class="stars">👏👏👏</div><h3>대성공! 공연 ${S.shows[id]}번째</h3></div>`
+        +say('멋진 마술사예요! 다음엔 다른 사람에게, 또는 다른 마술을 보여 줘요. 같은 사람에게 같은 마술은 두 번 하지 않기!','🎩')
+        +`<div class="row"><button class="big" data-again>다시 공연하기</button><button class="ghost" data-list>다른 마술 고르기</button></div>`,
+        {'[data-again]':()=>{SH.tab='tool';renderShow();},'[data-list]':()=>{renderStage();show('stage');}});burst($('.trophy',dd));},
+     '[data-oops]':()=>paint(el,say('괜찮아요! 진짜 마술사도 수없이 연습해요. 대본을 다시 보거나 수업에서 비밀을 복습해 봐요.','🎩')
+        +`<div class="row"><button class="big" data-scr>📜 대본 다시 보기</button><button class="ghost" data-les>📖 수업 복습하기</button></div>`,
+        {'[data-scr]':()=>{SH.tab='script';SH.line=1;renderShow();},'[data-les]':()=>openLesson(id)})});
+}
+
+renderHome();
+</script>
+</body>
+</html>
