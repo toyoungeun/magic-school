@@ -1,0 +1,16 @@
+{
+  "name": "수리수리 마술모자",
+  "short_name": "수리수리 마술모자",
+  "description": "토끼 퐁이와 함께 마술 비밀을 배우고 가족에게 깜짝 마술을 보여 주는 어린이 마술 게임",
+  "start_url": ".",
+  "scope": ".",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#1b1640",
+  "theme_color": "#1b1640",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
